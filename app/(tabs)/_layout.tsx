@@ -1,35 +1,74 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
+import { Text } from "react-native";
+import { CommonStyles } from "@/constants/CommonStyles";
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+const iconSize = 24;
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
-  );
+export default function TabsLayout() {
+    return (
+        <Tabs
+            screenOptions={{
+                headerStyle: { backgroundColor: "#999393"},
+                headerShadowVisible: false,
+                headerTintColor: Colors.black,
+                headerTitleStyle: { fontFamily: 'Comfortaa_700Bold' },
+                tabBarStyle: { 
+                    backgroundColor: Colors.white,
+                    paddingTop: 8,
+                    height: 90,
+                },
+                tabBarActiveTintColor: Colors.primary,
+                tabBarLabelStyle: { 
+                    fontFamily: 'Comfortaa_400Regular',
+                    fontSize: 12,
+                },
+                tabBarLabelPosition: 'below-icon',
+            }}
+        >
+            <Tabs.Screen name="index" options={{
+                title: "Dachboard",
+                headerRight: () => <Text style={CommonStyles.text}>Hello Yanis !</Text>,
+                tabBarIcon: ({ color, focused }) => (
+                    <Ionicons
+                        name={focused ? "home-sharp" : "home-outline"}
+                        color={color}
+                        size={iconSize}
+                    />
+                ),
+            }} />
+            <Tabs.Screen name="planning" options={{ 
+                title: "Planning",
+                headerShown: false,
+                tabBarIcon: ({ color, focused }) => (
+                    <Ionicons
+                        name={focused ? "calendar" : "calendar-outline"}
+                        color={color}
+                        size={iconSize}
+                    />
+                ),
+            }} />
+            <Tabs.Screen name="subjects" options={{ 
+                title: "Subjects",
+                tabBarIcon: ({ color, focused }) => (
+                    <Ionicons
+                        name={focused ? "book" : "book-outline"}
+                        color={color}
+                        size={iconSize}
+                    />
+                ),
+            }} />
+            <Tabs.Screen name="coach" options={{ 
+                title: "Coach",
+                tabBarIcon: ({ color, focused }) => (
+                    <Ionicons
+                        name={focused ? "sparkles" : "sparkles-outline"}
+                        color={color}
+                        size={iconSize}
+                    />
+                ),
+            }} />
+        </Tabs>
+    );
 }
