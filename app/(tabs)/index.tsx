@@ -1,10 +1,12 @@
-import Card from "@/components/Card";
-import ExamView from "@/components/ExamView";
-import { ThemedText } from "@/components/ThemedText";
-import { CommonStyles } from "@/constants/CommonStyles";
-import { ExamData } from "@/types/exam";
 import { StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import Head from "expo-router/head";
+
+import { ExamData } from "@/types/exam";
+import { CommonStyles } from "@/constants/CommonStyles";
+
+import { Card } from "@/components/base/Card";
+import { ThemedText } from "@/components/base/ThemedText";
+import ExamView from "@/components/ExamView";
 
 
 const nextExam: ExamData = {
@@ -18,8 +20,11 @@ export default function DashboardScreen() {
     <View
       style={[CommonStyles.container]}
     >
-      { nextExam && (
-        <ExamView style={{marginVertical: 8}} examInfos={nextExam} />
+      <Head>
+        <title>Dashboard - Dash Student</title>
+      </Head>
+      {nextExam && (
+        <ExamView style={{ marginVertical: 8 }} examInfos={nextExam} />
       )}
       <Card>
         <Text style={CommonStyles.heading}>Dashboard Card</Text>

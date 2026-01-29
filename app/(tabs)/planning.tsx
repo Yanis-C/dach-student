@@ -1,11 +1,13 @@
 import { useState, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Head from 'expo-router/head';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 
 import { CommonStyles } from '@/constants/CommonStyles';
-import { ThemedText } from '@/components/ThemedText';
+
+import { ThemedText } from '@/components/base/ThemedText';
 import { MonthCalendar } from '@/components/MonthCalendar';
 
 dayjs.locale('fr');
@@ -23,6 +25,9 @@ export default function PlanningScreen() {
 
   return (
     <View style={[CommonStyles.container, { paddingTop: insets.top + 16 }]}>
+      <Head>
+        <title>Planning - Dash Student</title>
+      </Head>
       <View>
         <ThemedText style={CommonStyles.heading}>Planning</ThemedText>
       </View>

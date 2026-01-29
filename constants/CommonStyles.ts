@@ -1,73 +1,73 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from './Colors';
+import { Spacing, Radius } from './Spacing';
+import { FontFamily, FontSize } from './Typography';
 
 export const CommonStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
-    padding: 16,
+    padding: Spacing.lg,
   },
-  
+
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.white,
   },
-  
+
   text: {
-    fontSize: 16,
+    fontSize: FontSize.md,
     color: Colors.black,
-    fontFamily: 'Comfortaa_400Regular',
+    fontFamily: FontFamily.regular,
   },
-  
+
   heading: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: FontSize.xl,
     color: Colors.black,
-    fontFamily: 'Comfortaa_700Bold',
-    marginBottom: 16,
+    fontFamily: FontFamily.bold,
+    marginBottom: Spacing.lg,
   },
-  
+
   subheading: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: FontSize.lg,
     color: Colors.black,
-    fontFamily: 'Comfortaa_700Bold',
-    marginBottom: 12,
+    fontFamily: FontFamily.bold,
+    marginBottom: Spacing.md,
   },
-  
+
   button: {
     backgroundColor: Colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: Radius.md,
     alignItems: 'center',
   },
-  
+
   buttonText: {
     color: Colors.white,
-    fontSize: 16,
-    fontFamily: 'Comfortaa_700Bold',
+    fontSize: FontSize.md,
+    fontFamily: FontFamily.bold,
   },
-  
+
   card: {
     backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
     shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    marginBottom: 12,
+    marginBottom: Spacing.md,
   },
-  
+
   row: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  
+
   spaceBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',

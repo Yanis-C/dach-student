@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 
 import { Colors } from '@/constants/Colors';
-import { ThemedText } from '@/components/ThemedText';
+import { ThemedText } from '@/components/base/ThemedText';
 
 dayjs.locale('fr');
 
