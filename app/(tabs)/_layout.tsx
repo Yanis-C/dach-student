@@ -1,8 +1,10 @@
-import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
-import { Text } from "react-native";
 import { CommonStyles } from "@/constants/CommonStyles";
+import { Spacing } from "@/constants/Spacing";
+import { FontFamily, FontSize } from "@/constants/Typography";
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import { Text } from "react-native";
 
 const iconSize = 24;
 
@@ -10,19 +12,24 @@ export default function TabsLayout() {
     return (
         <Tabs
             screenOptions={{
-                headerStyle: { backgroundColor: "#999393"},
+                headerStyle: { backgroundColor: Colors.white },
                 headerShadowVisible: false,
                 headerTintColor: Colors.black,
-                headerTitleStyle: { fontFamily: 'Comfortaa_700Bold' },
-                tabBarStyle: { 
+                headerTitleStyle: {
+                    fontFamily: FontFamily.bold,
+                    fontSize: FontSize.lg,
+                },
+                headerTitleAlign: 'left',
+                headerLeftContainerStyle: { paddingLeft: Spacing.lg },
+                headerRightContainerStyle: { paddingRight: Spacing.lg },
+                tabBarStyle: {
                     backgroundColor: Colors.white,
-                    paddingTop: 8,
-                    height: 90,
+                    paddingBottom: Spacing.sm,
                 },
                 tabBarActiveTintColor: Colors.primary,
-                tabBarLabelStyle: { 
-                    fontFamily: 'Comfortaa_400Regular',
-                    fontSize: 12,
+                tabBarLabelStyle: {
+                    fontFamily: FontFamily.regular,
+                    fontSize: FontSize.xs,
                 },
                 tabBarLabelPosition: 'below-icon',
             }}
@@ -40,7 +47,6 @@ export default function TabsLayout() {
             }} />
             <Tabs.Screen name="planning" options={{ 
                 title: "Planning",
-                headerShown: false,
                 tabBarIcon: ({ color, focused }) => (
                     <Ionicons
                         name={focused ? "calendar" : "calendar-outline"}

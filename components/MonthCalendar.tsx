@@ -1,121 +1,127 @@
-import { useState, useCallback } from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
-import { Calendar } from '@marceloterreiro/flash-calendar';
-import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
-import 'dayjs/locale/fr';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Calendar, LocaleConfig } from 'react-native-calendars';
 
 import { Colors } from '@/constants/Colors';
-import { ThemedText } from '@/components/base/ThemedText';
+import { Radius, Spacing } from '@/constants/Spacing';
+import { FontFamily, FontSize } from '@/constants/Typography';
+import { ThemedText } from './base/ThemedText';
 
-dayjs.locale('fr');
+const TODAY = dayjs().format('YYYY-MM-DD');
 
-const DATE_FORMAT = 'YYYY-MM-DD';
-const FRENCH_DAY_NAMES = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+// Configure French locale
+LocaleConfig.locales['fr'] = {
+  monthNames: [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
+  ],
+  monthNamesShort: [
+    'Janv.', 'Févr.', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juil.', 'Août', 'Sept.', 'Oct.', 'Nov.', 'Déc.',
+  ],
+  dayNames: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+  dayNamesShort: ['D', 'L', 'M', 'M', 'J', 'V', 'S'],
+  today: "Aujourd'hui",
+};
+LocaleConfig.defaultLocale = 'fr';
+
+export interface DotMarking {
+  key: string;
+  color: string;
+  selectedDotColor?: string;
+}
+
+export interface MarkedDateData {
+  dots?: DotMarking[];
+  disabled?: boolean;
+}
+
+export type MarkedDates = Record<string, MarkedDateData>;
 
 interface MonthCalendarProps {
   selectedDate: string;
   onDateSelect: (dateId: string) => void;
+  markedDates?: MarkedDates;
 }
 
-export function MonthCalendar({ selectedDate, onDateSelect }: MonthCalendarProps) {
-  const [currentMonth, setCurrentMonth] = useState(dayjs().format(DATE_FORMAT));
+const vacation = {key: 'vacation', color: 'red', selectedDotColor: 'blue'};
+const massage = {key: 'massage', color: 'blue', selectedDotColor: 'blue'};
+const workout = {key: 'workout', color: 'green'}; 
 
-  const goToPreviousMonth = useCallback(() => {
-    setCurrentMonth(prev => dayjs(prev).subtract(1, 'month').format(DATE_FORMAT));
-  }, []);
-
-  const goToNextMonth = useCallback(() => {
-    setCurrentMonth(prev => dayjs(prev).add(1, 'month').format(DATE_FORMAT));
-  }, []);
-
-  const goToToday = useCallback(() => {
-    const today = dayjs().format(DATE_FORMAT);
-    setCurrentMonth(today);
-    onDateSelect(today);
-  }, [onDateSelect]);
-
-  const monthYear = dayjs(currentMonth).format('MMMM YYYY');
-  const monthYearLabel = monthYear.charAt(0).toUpperCase() + monthYear.slice(1);
-
+export function MonthCalendar({ selectedDate, onDateSelect, markedDates = {} }: MonthCalendarProps) {
   return (
     <View style={styles.container}>
-      {/* Custom header with navigation */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={goToPreviousMonth} style={styles.navButton}>
-          <Ionicons name="chevron-back" size={24} color={Colors.black} />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={goToToday}>
-          <ThemedText style={styles.monthTitle}>{monthYearLabel}</ThemedText>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
-          <Ionicons name="chevron-forward" size={24} color={Colors.black} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Day names row */}
-      <View style={styles.dayNamesRow}>
-        {FRENCH_DAY_NAMES.map((day, index) => (
-          <View key={index} style={styles.dayNameCell}>
-            <ThemedText style={styles.dayNameText}>{day}</ThemedText>
-          </View>
-        ))}
-      </View>
-
-      {/* Calendar */}
       <Calendar
-        calendarActiveDateRanges={[
-          {
-            startId: selectedDate,
-            endId: selectedDate,
-          },
-        ]}
-        calendarMonthId={currentMonth}
-        onCalendarDayPress={onDateSelect}
-        calendarColorScheme="light"
-        calendarFirstDayOfWeek="monday"
+        onDayPress={day => onDateSelect(day.dateString)}
+        firstDay={1}
+        hideExtraDays={false}
+        markingType={'multi-dot'}
+        markedDates={{
+          '2026-01-25':
+            { dots: [vacation, massage, workout] },
+          '2026-01-26':
+            { dots: [massage, workout], disabled: true }
+        }}
         theme={{
-          rowMonth: {
-            container: {
-              display: 'none',
-            },
-          },
-          rowWeek: {
-            container: {
-              display: 'none',
-            },
-          },
-          itemDay: {
-            base: () => ({
-              content: {
-                fontFamily: 'Comfortaa_400Regular',
-                color: Colors.black,
-              },
-            }),
-            today: () => ({
-              container: {
-                borderWidth: 2,
-                borderColor: Colors.secondary,
-                borderRadius: 16,
-              },
-              content: {
-                fontFamily: 'Comfortaa_700Bold',
-                color: Colors.secondary,
-              },
-            }),
-            active: () => ({
-              container: {
-                backgroundColor: Colors.secondary,
-                borderRadius: 16,
-              },
-              content: {
-                fontFamily: 'Comfortaa_700Bold',
-                color: Colors.white,
-              },
-            }),
-          },
+          backgroundColor: 'transparent',
+          calendarBackground: 'transparent',
+          arrowColor: Colors.secondary,
+          monthTextColor: Colors.secondary,
+          textMonthFontFamily: FontFamily.bold,
+          textDayHeaderFontFamily: FontFamily.bold,
+          textMonthFontSize: FontSize.lg,
+          textDayHeaderFontSize: FontSize.sm,
+        }}
+        dayComponent={({ date, state, marking }) => {
+          const isToday = date?.dateString === TODAY;
+          const isSelected = date?.dateString === selectedDate;
+          const isDisabled = state === 'disabled';
+          const dots = (marking as MarkedDateData)?.dots || [];
+
+          return (
+            <TouchableOpacity
+              onPress={() => date && onDateSelect(date.dateString)}
+              style={[
+                styles.dayContainer,
+                isDisabled && styles.dayContainerDisabled,
+              ]}
+              activeOpacity={0.7}
+              disabled={isDisabled}
+            >
+              <View
+                style={[
+                  styles.dayBase,
+                  isToday && !isSelected && styles.dayToday,
+                  isSelected && styles.daySelected,
+                ]}
+              >
+                <ThemedText
+                  style={[
+                    styles.dayText,
+                    isDisabled && styles.dayTextDisabled,
+                    isToday && !isSelected && styles.dayTextToday,
+                    isSelected && styles.dayTextSelected,
+                  ]}
+                >
+                  {date?.day}
+                </ThemedText>
+              </View>
+              
+              {dots.length > 0 && (
+                <View style={styles.dotsContainer}>
+                  {dots.slice(0, 3).map((dot) => (
+                    <View
+                      key={dot.key}
+                      style={[
+                        styles.dot,
+                        { backgroundColor: isSelected && dot.selectedDotColor ? dot.selectedDotColor : dot.color },
+                      ]}
+                    />
+                  ))}
+                </View>
+              )}
+            </TouchableOpacity>
+          );
         }}
       />
     </View>
@@ -125,7 +131,7 @@ export function MonthCalendar({ selectedDate, onDateSelect }: MonthCalendarProps
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.white,
-    borderRadius: 12,
+    borderRadius: Radius.lg,
     padding: 12,
     shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
@@ -133,34 +139,55 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  dayContainer: {
     alignItems: 'center',
-    marginBottom: 16,
-    paddingHorizontal: 4,
+    justifyContent: 'center',
   },
-  navButton: {
-    padding: 8,
+  dayContainerDisabled: {
+    opacity: 0.3,
   },
-  monthTitle: {
-    fontFamily: 'Comfortaa_700Bold',
-    fontSize: 18,
+  dayBase: {
+    width: 32,
+    height: 32,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    borderRadius: Radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayToday: {
+    borderColor: Colors.secondary,
+  },
+  daySelected: {
+    backgroundColor: Colors.secondary,
+    borderColor: Colors.secondary,
+  },
+  dayText: {
+    fontFamily: FontFamily.regular,
+    fontSize: Platform.OS === 'ios' ? FontSize.md : FontSize.sm,
+    color: Colors.black,
+  },
+  dayTextDisabled: {
+    opacity: 0.3,
+  },
+  dayTextToday: {
+    fontFamily: FontFamily.bold,
     color: Colors.secondary,
   },
-  dayNamesRow: {
+  dayTextSelected: {
+    fontFamily: FontFamily.bold,
+    color: Colors.white,
+  },
+  dotsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 8,
-  },
-  dayNameCell: {
-    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    marginTop: Spacing.xs,
+    gap: 2,
   },
-  dayNameText: {
-    fontFamily: 'Comfortaa_700Bold',
-    fontSize: 14,
-    color: Colors.black,
-    opacity: 0.6,
+  dot: {
+    width: 5,
+    height: 5,
+    borderRadius: Radius.full,
   },
 });

@@ -1,12 +1,15 @@
-import { useState, useCallback } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Head from 'expo-router/head';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
+import { useNavigation } from 'expo-router';
+import Head from 'expo-router/head';
+import { useCallback, useLayoutEffect, useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { Colors } from '@/constants/Colors';
 import { CommonStyles } from '@/constants/CommonStyles';
+import { Spacing } from '@/constants/Spacing';
 
+import { SwitchButton } from '@/components/base/SwitchButton';
 import { ThemedText } from '@/components/base/ThemedText';
 import { MonthCalendar } from '@/components/MonthCalendar';
 
@@ -16,36 +19,55 @@ const DATE_FORMAT = 'YYYY-MM-DD';
 const today = dayjs().format(DATE_FORMAT);
 
 export default function PlanningScreen() {
-  const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const [selectedDate, setSelectedDate] = useState(today);
+  const [selectedCalendar, setSelectedCalendar] = useState<'week' | 'month'>('month');
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View>
+          <ThemedText style={{ marginRight: Spacing.lg }}>
+            {dayjs().format('D MMMM YYYY')}
+          </ThemedText>
+        </View>
+      ),
+    });
+  }, [navigation, selectedCalendar]);
 
   const handleDateSelect = useCallback((dateId: string) => {
     setSelectedDate(dateId);
   }, []);
 
   return (
-    <View style={[CommonStyles.container, { paddingTop: insets.top + 16 }]}>
+    <ScrollView style={CommonStyles.container} contentContainerStyle={CommonStyles.content}>
       <Head>
         <title>Planning - Dash Student</title>
       </Head>
-      <View>
-        <ThemedText style={CommonStyles.heading}>Planning</ThemedText>
-      </View>
 
-      <MonthCalendar
-        selectedDate={selectedDate}
-        onDateSelect={handleDateSelect}
+      <SwitchButton
+        options={['week', 'month']}
+        labels={['Semaine', 'Mois']}
+        value={selectedCalendar}
+        onChange={setSelectedCalendar}
       />
+
+      {selectedCalendar === 'month' && (
+        <MonthCalendar
+          selectedDate={selectedDate}
+          onDateSelect={handleDateSelect}
+        />)
+      }
 
       <View style={styles.selectedDateContainer}>
         <ThemedText style={CommonStyles.subheading}>
           {formatDate(selectedDate)}
         </ThemedText>
-        <ThemedText style={styles.noEventsText}>
+        <ThemedText variant="caption" color={Colors.greyText}>
           Aucun événement prévu ce jour
         </ThemedText>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -57,11 +79,5 @@ function formatDate(dateId: string): string {
 const styles = StyleSheet.create({
   selectedDateContainer: {
     flex: 1,
-    marginTop: 24,
-  },
-  noEventsText: {
-    color: '#888',
-    fontFamily: 'Comfortaa_400Regular',
-    fontSize: 14,
   },
 });

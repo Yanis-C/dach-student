@@ -1,14 +1,16 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Head from 'expo-router/head';
 
+import { CommonStyles } from '@/constants/CommonStyles';
+import { ThemedText } from '@/components/base/ThemedText';
 
 export default function CoachScreen() {
   return (
-    <View>
+    <View style={[CommonStyles.container, CommonStyles.content]}>
       <Head>
         <title>Coach - Dash Student</title>
       </Head>
-      <Text>Coach</Text>
+      <ThemedText>Coach</ThemedText>
     </View>
   );
 }

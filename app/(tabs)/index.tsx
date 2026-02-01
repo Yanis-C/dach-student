@@ -17,9 +17,7 @@ const nextExam: ExamData = {
 
 export default function DashboardScreen() {
   return (
-    <View
-      style={[CommonStyles.container]}
-    >
+    <View style={[CommonStyles.container, CommonStyles.content]}>
       <Head>
         <title>Dashboard - Dash Student</title>
       </Head>

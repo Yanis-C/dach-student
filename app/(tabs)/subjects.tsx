@@ -1,14 +1,16 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Head from 'expo-router/head';
 
+import { CommonStyles } from '@/constants/CommonStyles';
+import { ThemedText } from '@/components/base/ThemedText';
 
 export default function SubjectsScreen() {
   return (
-    <View>
+    <View style={[CommonStyles.container, CommonStyles.content]}>
       <Head>
         <title>Matières - Dash Student</title>
       </Head>
-      <Text>Subjects</Text>
+      <ThemedText>Subjects</ThemedText>
     </View>
   );
 }

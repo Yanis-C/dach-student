@@ -1,8 +1,14 @@
-import { StyleSheet, Text, View, ViewStyle } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
-import { ExamData } from '@/types/exam'
-import { CommonStyles } from '@/constants/CommonStyles'
-import { Colors } from '@/constants/Colors'
+import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
+
+import { ExamData } from '@/types/exam';
+import { Colors } from '@/constants/Colors';
+import { Radius } from '@/constants/Spacing';
+import { FontFamily, FontSize } from '@/constants/Typography';
+
+dayjs.locale('fr');
 
 type Props = {
     examInfos: ExamData
@@ -10,25 +16,23 @@ type Props = {
 }
 
 export default function ExamView({ examInfos, style }: Props) {
-    // Calculate progress percentage based on dates
-    const creationDate = new Date(examInfos.creationDate);
-    const dueDate = new Date(examInfos.dueDate);
-    const currentDate = new Date();
-    
-    const totalTime = dueDate.getTime() - creationDate.getTime();
-    const elapsedTime = currentDate.getTime() - creationDate.getTime();
-    const progressPercentage = Math.min(Math.max(Math.round((elapsedTime / totalTime) * 100), 0), 100);
-    
-    // Calculate days left until exam
-    const timeLeft = dueDate.getTime() - currentDate.getTime();
-    const daysLeft = Math.max(Math.ceil(timeLeft / (1000 * 60 * 60 * 24)), 0);
-    
+    const creationDate = dayjs(examInfos.creationDate);
+    const dueDate = dayjs(examInfos.dueDate);
+    const today = dayjs();
+
+    // Calculate progress percentage
+    const totalDays = dueDate.diff(creationDate, 'day');
+    const elapsedDays = today.diff(creationDate, 'day');
+    const progressPercentage = Math.min(Math.max(Math.round((elapsedDays / totalDays) * 100), 0), 100);
+
+    // Days left until exam
+    const daysLeft = Math.max(dueDate.diff(today, 'day'), 0);
+
     // Format due date
-    const formattedDate = dueDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+    const formattedDate = dueDate.format('D MMMM');
     
     return (
         <View style={[styles.container, style]}>
-            {/* Header with exam info and countdown */}
             <View style={styles.header}>
                 <View style={styles.examInfo}>
                     <Text style={styles.label}>PROCHAIN EXAMEN</Text>
@@ -40,7 +44,6 @@ export default function ExamView({ examInfos, style }: Props) {
                 </View>
             </View>
             
-            {/* Progress section */}
             <View style={styles.progressSection}>
                 <View style={styles.progressHeader}>
                     <Text style={styles.progressLabel}>Progression globale</Text>
@@ -48,7 +51,7 @@ export default function ExamView({ examInfos, style }: Props) {
                 </View>
                 <View style={styles.progressBarBg}>
                     <LinearGradient
-                        colors={['#22C55E', '#6366F1']}
+                        colors={[Colors.success, Colors.secondary]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={[styles.progressBarFill, { width: `${progressPercentage}%` }]}
@@ -62,7 +65,7 @@ export default function ExamView({ examInfos, style }: Props) {
 const styles = StyleSheet.create({
     container: {
         backgroundColor: Colors.black,
-        borderRadius: 20,
+        borderRadius: Radius.xl,
         padding: 20,
         gap: 16,
     },
@@ -75,32 +78,32 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     label: {
-        fontSize: 10,
+        fontSize: FontSize.xxs,
         fontWeight: '600',
-        color: '#9CA3AF',
+        color: Colors.greyText,
         letterSpacing: 1,
-        fontFamily: 'Comfortaa_700Bold',
+        fontFamily: FontFamily.bold,
     },
     examTitle: {
-        fontSize: 20,
+        fontSize: FontSize.xl,
         fontWeight: '700',
         color: Colors.white,
-        fontFamily: 'Comfortaa_700Bold',
+        fontFamily: FontFamily.bold,
     },
     countdown: {
         alignItems: 'flex-end',
         gap: 2,
     },
     daysLeft: {
-        fontSize: 28,
+        fontSize: FontSize.xxl,
         fontWeight: '800',
-        color: '#FCD34D',
-        fontFamily: 'Comfortaa_700Bold',
+        color: Colors.warning,
+        fontFamily: FontFamily.bold,
     },
     date: {
-        fontSize: 12,
-        color: '#9CA3AF',
-        fontFamily: 'Comfortaa_400Regular',
+        fontSize: FontSize.sm,
+        color: Colors.greyText,
+        fontFamily: FontFamily.regular,
     },
     progressSection: {
         gap: 8,
@@ -110,25 +113,25 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     progressLabel: {
-        fontSize: 12,
-        color: '#9CA3AF',
-        fontFamily: 'Comfortaa_400Regular',
+        fontSize: FontSize.sm,
+        color: Colors.greyText,
+        fontFamily: FontFamily.regular,
     },
     progressValue: {
-        fontSize: 12,
+        fontSize: FontSize.sm,
         fontWeight: '600',
-        color: '#22C55E',
-        fontFamily: 'Comfortaa_700Bold',
+        color: Colors.success,
+        fontFamily: FontFamily.bold,
     },
     progressBarBg: {
         width: '100%',
         height: 8,
-        backgroundColor: '#333333',
-        borderRadius: 4,
+        backgroundColor: Colors.greyDark,
+        borderRadius: Radius.sm,
         overflow: 'hidden',
     },
     progressBarFill: {
         height: '100%',
-        borderRadius: 4,
+        borderRadius: Radius.sm,
     },
 })

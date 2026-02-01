@@ -1,19 +1,22 @@
-import { StyleSheet } from 'react-native';
-import { Colors } from './Colors';
-import { Spacing, Radius } from './Spacing';
-import { FontFamily, FontSize } from './Typography';
+import { StyleSheet } from "react-native";
+import { Colors } from "./Colors";
+import { Radius, Spacing } from "./Spacing";
+import { FontFamily, FontSize } from "./Typography";
 
 export const CommonStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
+  },
+  content: {
     padding: Spacing.lg,
+    gap: Spacing.lg,
   },
 
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: Colors.white,
   },
 
@@ -42,7 +45,7 @@ export const CommonStyles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     borderRadius: Radius.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
 
   buttonText: {
@@ -64,13 +67,13 @@ export const CommonStyles = StyleSheet.create({
   },
 
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   spaceBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 });
