@@ -86,6 +86,11 @@ export function MonthCalendar({ selectedDate, onDateSelect, markedDates = {} }: 
     setCurrentMonth(newMonth);
   };
 
+  // Navigate to current month
+  const goToCurrentMonth = () => {
+    setCurrentMonth(dayjs().format('YYYY-MM-DD'));
+  };
+
   // Swipe gesture handler
   const { panGesture, animatedStyle } = useSwipeNavigation({
     onSwipeLeft: goToNextMonth,
@@ -118,6 +123,15 @@ export function MonthCalendar({ selectedDate, onDateSelect, markedDates = {} }: 
               textMonthFontSize: FontSize.lg,
               textDayHeaderFontSize: FontSize.sm,
               textSectionTitleColor: Colors.greyText,
+            }}
+            renderHeader={(date) => {
+              const month = dayjs(date.toISOString()).format('MMMM YYYY');
+              const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
+              return (
+                <Pressable onPress={goToCurrentMonth}>
+                  <ThemedText style={styles.monthTitle}>{capitalizedMonth}</ThemedText>
+                </Pressable>
+              );
             }}
             // Custom day rendering with selection states and dot markers
             dayComponent={({ date, state, marking }) => {
@@ -195,6 +209,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     overflow: 'hidden',
+  },
+  monthTitle: {
+    fontFamily: FontFamily.bold,
+    fontSize: FontSize.lg,
+    color: Colors.secondary,
   },
   dayContainer: {
     alignItems: 'center',

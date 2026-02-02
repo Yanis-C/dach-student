@@ -3,6 +3,12 @@
 # dependencies
 node_modules/
 
+# Editor/IDE
+.vscode/
+.idea/
+.fleet/
+.settings/
+
 # Expo
 .expo/
 dist/

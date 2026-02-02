@@ -9,6 +9,7 @@ import { ThemedText } from '@/components/base/ThemedText';
 interface InputProps {
   value: string;
   onChangeText: (text: string) => void;
+  onBlur?: () => void;
   placeholder?: string;
   label?: string;
   error?: string;
@@ -19,6 +20,7 @@ interface InputProps {
 export function Input({
   value,
   onChangeText,
+  onBlur,
   placeholder,
   label,
   error,
@@ -31,6 +33,7 @@ export function Input({
       <TextInput
         value={value}
         onChangeText={onChangeText}
+        onBlur={onBlur}
         placeholder={placeholder}
         placeholderTextColor={Colors.black + '60'}
         editable={!disabled}

@@ -1,6 +1,6 @@
 export const FontFamily = {
-  regular: 'Comfortaa_400Regular',
-  bold: 'Comfortaa_700Bold',
+  regular: "Comfortaa_400Regular",
+  bold: "Comfortaa_700Bold",
 } as const;
 
 export const FontSize = {
@@ -11,6 +11,11 @@ export const FontSize = {
   lg: 18,
   xl: 24,
   xxl: 32,
+} as const;
+
+export const FontWeight = {
+  regular: "400",
+  bold: "700",
 } as const;
 
 export const LineHeight = {

@@ -5,10 +5,13 @@ import { FontFamily, FontSize } from "@/constants/Typography";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { Text } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const iconSize = 24;
 
 export default function TabsLayout() {
+    const insets = useSafeAreaInsets();
+
     return (
         <Tabs
             screenOptions={{
@@ -24,7 +27,8 @@ export default function TabsLayout() {
                 headerRightContainerStyle: { paddingRight: Spacing.lg },
                 tabBarStyle: {
                     backgroundColor: Colors.white,
-                    paddingBottom: Spacing.sm,
+                    paddingBottom: insets.bottom > 0 ? insets.bottom : Spacing.sm,
+                    height: 60 + insets.bottom,
                 },
                 tabBarActiveTintColor: Colors.primary,
                 tabBarLabelStyle: {

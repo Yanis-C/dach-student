@@ -1,10 +1,11 @@
-import { StyleSheet, Text, View } from "react-native";
 import Head from "expo-router/head";
+import { Text, View } from "react-native";
 
-import { ExamData } from "@/types/exam";
 import { CommonStyles } from "@/constants/CommonStyles";
+import { ExamData } from "@/types/exam";
 
 import { Card } from "@/components/base/Card";
+import ImageIcon from "@/components/base/ImageIcon";
 import { ThemedText } from "@/components/base/ThemedText";
 import ExamView from "@/components/ExamView";
 
@@ -14,6 +15,8 @@ const nextExam: ExamData = {
   dueDate: "2026-06-15",
   creationDate: "2025-12-15",
 }
+
+const teckelImage = require('@/assets/images/teckel-chill.png');
 
 export default function DashboardScreen() {
   return (
@@ -28,16 +31,8 @@ export default function DashboardScreen() {
         <Text style={CommonStyles.heading}>Dashboard Card</Text>
         <Text style={CommonStyles.text}>This is a card component styled with CommonStyles.</Text>
       </Card>
-      <Text style={CommonStyles.text}>Hello Yanis !</Text>
-      <ThemedText>Welcome to Dashboard !</ThemedText>
+      <ThemedText>Welcome to Dashboar</ThemedText>
+      <ImageIcon source={teckelImage} width={120} height={120} style={{alignSelf: 'center'}} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    //justifyContent: "center",
-    alignItems: "center",
-  }
-});

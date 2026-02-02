@@ -7,13 +7,14 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { Colors } from '@/constants/Colors';
 import { CommonStyles } from '@/constants/CommonStyles';
-import { Spacing } from '@/constants/Spacing';
+import { Radius, Spacing } from '@/constants/Spacing';
 
 import { SwitchButton } from '@/components/base/SwitchButton';
 import { ThemedText } from '@/components/base/ThemedText';
 import { MarkedDates, MonthCalendar } from '@/components/MonthCalendar';
 import { WeekCalendar } from '@/components/WeekCalendar';
 
+import { IconButton } from '@/components/base/IconButton';
 import eventsData from '@/example/json/events.json';
 import { Event, EventsData } from '@/types/event';
 
@@ -53,11 +54,14 @@ export default function PlanningScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <View>
-          <ThemedText style={{ marginRight: Spacing.lg }}>
-            {dayjs().format('D MMMM YYYY')}
-          </ThemedText>
-        </View>
+        <IconButton
+          icon="add"
+          onPress={() => console.log('Add subject')}
+          size={20}
+          color={Colors.white}
+          backgroundColor={Colors.secondary}
+          style={{ marginRight: Spacing.sm, borderRadius: Radius.md }}
+        />
       ),
     });
   }, [navigation, selectedCalendar]);
