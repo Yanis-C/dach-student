@@ -1,14 +1,34 @@
 import { useNavigation } from 'expo-router';
 import Head from 'expo-router/head';
 import { useLayoutEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 
 import { IconButton } from '@/components/base/IconButton';
-import { ThemedText } from '@/components/base/ThemedText';
+import { MainSubject } from '@/components/MainSubject';
 import SubjectForm from '@/components/modals/SubjectForm';
 import { Colors } from '@/constants/Colors';
 import { CommonStyles } from '@/constants/CommonStyles';
 import { Spacing } from '@/constants/Spacing';
+import { Subject } from '@/types/Subject';
+
+const MOCK_SUBJECTS: Subject[] = [
+  {
+    id: '1',
+    name: 'Mathématiques',
+    color: '#5856D6',
+    icon: 'calculator',
+    chapters: 6,
+    completedChapters: 4,
+  },
+  {
+    id: '2',
+    name: 'Physique-Chimie',
+    color: '#E67E22',
+    icon: 'flask',
+    chapters: 8,
+    completedChapters: 3,
+  },
+];
 
 export default function SubjectsScreen() {
   const navigation = useNavigation();
@@ -23,7 +43,7 @@ export default function SubjectsScreen() {
           size={20}
           color={Colors.white}
           backgroundColor={Colors.secondary}
-          style={{ marginRight: Spacing.sm}}
+          style={{ marginRight: Spacing.sm }}
         />
       ),
     });
@@ -34,10 +54,27 @@ export default function SubjectsScreen() {
       <Head>
         <title>Matières - Dash Student</title>
       </Head>
-      <ThemedText>Subjects</ThemedText>
-      {isSubjectFormVisible && <SubjectForm isVisible={isSubjectFormVisible} onClose={() => setIsSubjectFormVisible(false)} />}
+      <FlatList
+        data={MOCK_SUBJECTS}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        renderItem={({ item }) => (
+          <MainSubject subject={item} onPress={() => console.log('pressed', item.name)} />
+        )}
+      />
+      {isSubjectFormVisible && (
+        <SubjectForm
+          isVisible={isSubjectFormVisible}
+          onClose={() => setIsSubjectFormVisible(false)}
+        />
+      )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  list: {
+    padding: Spacing.md,
+    gap: Spacing.md,
+  },
+});
