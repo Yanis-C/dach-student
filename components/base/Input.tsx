@@ -1,20 +1,23 @@
-import { TextInput, StyleSheet, View, ViewStyle } from 'react-native';
+import { TextInput, StyleSheet, View, ViewStyle, KeyboardTypeOptions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { Colors } from '@/constants/Colors';
 import { Spacing, Radius } from '@/constants/Spacing';
 
 import { ThemedText } from '@/components/base/ThemedText';
 
-
-interface InputProps {
+export interface InputProps {
   value: string;
   onChangeText: (text: string) => void;
   onBlur?: () => void;
   placeholder?: string;
   label?: string;
+  labelIcon?: keyof typeof Ionicons.glyphMap;
+  labelColor?: string;
   error?: string;
   disabled?: boolean;
   style?: ViewStyle;
+  keyboardType?: KeyboardTypeOptions;
 }
 
 export function Input({
@@ -23,13 +26,25 @@ export function Input({
   onBlur,
   placeholder,
   label,
+  labelIcon,
+  labelColor = Colors.black,
   error,
   disabled = false,
   style,
+  keyboardType,
 }: InputProps) {
   return (
     <View style={style}>
-      {label && <ThemedText style={styles.label}>{label}</ThemedText>}
+      {label && (
+        <View style={styles.labelContainer}>
+          {labelIcon && (
+            <Ionicons name={labelIcon} size={16} color={labelColor} />
+          )}
+          <ThemedText style={[styles.label, { color: labelColor }]}>
+            {label}
+          </ThemedText>
+        </View>
+      )}
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -37,6 +52,7 @@ export function Input({
         placeholder={placeholder}
         placeholderTextColor={Colors.black + '60'}
         editable={!disabled}
+        keyboardType={keyboardType}
         style={[
           styles.input,
           error && styles.inputError,
@@ -49,11 +65,15 @@ export function Input({
 }
 
 const styles = StyleSheet.create({
+  labelContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
   label: {
     fontFamily: 'Comfortaa_700Bold',
     fontSize: 14,
-    color: Colors.black,
-    marginBottom: Spacing.xs,
   },
   input: {
     fontFamily: 'Comfortaa_400Regular',

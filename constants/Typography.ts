@@ -3,6 +3,7 @@ export const FontFamily = {
   bold: "Comfortaa_700Bold",
 } as const;
 
+//TODO: seems to be different on platforms
 export const FontSize = {
   xxs: 10,
   xs: 12,
