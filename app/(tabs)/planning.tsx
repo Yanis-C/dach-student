@@ -11,8 +11,10 @@ import { Radius, Spacing } from '@/constants/Spacing';
 
 import { SwitchButton } from '@/components/base/SwitchButton';
 import { ThemedText } from '@/components/base/ThemedText';
+import { EventCard } from '@/components/EventCard';
 import { MarkedDates, MonthCalendar } from '@/components/MonthCalendar';
 import { WeekCalendar } from '@/components/WeekCalendar';
+import EventForm from '@/components/modals/EventForm';
 
 import { IconButton } from '@/components/base/IconButton';
 import eventsData from '@/example/json/events.json';
@@ -48,6 +50,7 @@ export default function PlanningScreen() {
   const navigation = useNavigation();
   const [selectedDate, setSelectedDate] = useState(today);
   const [selectedCalendar, setSelectedCalendar] = useState<'week' | 'month'>('month');
+  const [isEventFormVisible, setIsEventFormVisible] = useState(false);
 
   const selectedDayEvents: Event[] = exampleEvents[selectedDate] || [];
 
@@ -56,7 +59,7 @@ export default function PlanningScreen() {
       headerRight: () => (
         <IconButton
           icon="add"
-          onPress={() => console.log('Add subject')}
+          onPress={() => setIsEventFormVisible(true)}
           size={20}
           color={Colors.white}
           backgroundColor={Colors.secondary}
@@ -104,26 +107,43 @@ export default function PlanningScreen() {
           {formatDate(selectedDate)}
         </ThemedText>
         {selectedDayEvents.length > 0 ? (
-          selectedDayEvents.map((event) => (
-            <ThemedText key={event.key}>{event.title}</ThemedText>
-          ))
+          <View style={styles.eventsContainer}>
+            {selectedDayEvents.map((event) => (
+              <EventCard
+                key={event.key}
+                title={event.title}
+                description={event.description}
+                hours={event.hours}
+                color={event.color}
+              />
+            ))}
+          </View>
         ) : (
           <ThemedText variant="caption" color={Colors.greyText}>
             Aucun événement prévu ce jour
           </ThemedText>
         )}
       </View>
+
+      <EventForm
+        isVisible={isEventFormVisible}
+        onClose={() => setIsEventFormVisible(false)}
+      />
     </ScrollView>
   );
 }
 
 function formatDate(dateId: string): string {
-  const formatted = dayjs(dateId).format('dddd D MMMM YYYY');
+  const formatted = dayjs(dateId).format('dddd D MMMM');
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
 const styles = StyleSheet.create({
   selectedDateContainer: {
     flex: 1,
+  },
+  eventsContainer: {
+    gap: Spacing.md,
+    marginTop: Spacing.sm,
   },
 });
