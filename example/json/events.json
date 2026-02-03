@@ -1,34 +1,111 @@
 {
-  "2026-01-31": [{ "key": "exam", "color": "#FF0000", "title": "Math Exam" }],
+  "2026-01-31": [
+    {
+      "key": "exam",
+      "color": "#FF0000",
+      "title": "Math Exam",
+      "description": "Chapitre 5 - Fonctions",
+      "hours": "10:00 - 12:00"
+    }
+  ],
   "2026-02-02": [
-    { "key": "homework", "color": "#FFA500", "title": "History Homework" }
+    {
+      "key": "homework",
+      "color": "#FFA500",
+      "title": "History Homework",
+      "description": "Révolution française"
+    }
   ],
   "2026-02-03": [
-    { "key": "meeting", "color": "#0000FF", "title": "Project Meeting" }
+    {
+      "key": "meeting",
+      "color": "#5856D6",
+      "title": "Maths - Intégrales",
+      "description": "Méthode J • J+3",
+      "hours": "8:00 - 10:00"
+    },
+    {
+      "key": "study",
+      "color": "#E67E22",
+      "title": "Physique - Mécanique",
+      "description": "Exercices chapitres 3-4",
+      "hours": "14:00 - 16:00"
+    }
   ],
   "2026-02-05": [
-    { "key": "exam", "color": "#FF0000", "title": "Physics Exam" }
+    {
+      "key": "exam",
+      "color": "#FF0000",
+      "title": "Physics Exam",
+      "description": "Thermodynamique",
+      "hours": "9:00 - 11:00"
+    }
   ],
   "2026-02-07": [
-    { "key": "homework", "color": "#FFA500", "title": "English Essay" },
-    { "key": "meeting", "color": "#0000FF", "title": "Study Group" }
+    {
+      "key": "homework",
+      "color": "#FFA500",
+      "title": "English Essay",
+      "description": "500 words minimum"
+    },
+    {
+      "key": "meeting",
+      "color": "#0000FF",
+      "title": "Study Group",
+      "description": "Bibliothèque",
+      "hours": "15:00 - 17:00"
+    }
   ],
   "2026-02-10": [
-    { "key": "exam", "color": "#FF0000", "title": "Chemistry Quiz" }
+    {
+      "key": "exam",
+      "color": "#FF0000",
+      "title": "Chemistry Quiz",
+      "description": "Réactions acido-basiques",
+      "hours": "11:00 - 12:00"
+    }
   ],
   "2026-02-12": [
-    { "key": "meeting", "color": "#0000FF", "title": "Teacher Conference" }
+    {
+      "key": "meeting",
+      "color": "#0000FF",
+      "title": "Teacher Conference",
+      "description": "Salle 204",
+      "hours": "16:00 - 16:30"
+    }
   ],
   "2026-02-14": [
-    { "key": "homework", "color": "#FFA500", "title": "Math Assignment" }
+    {
+      "key": "homework",
+      "color": "#FFA500",
+      "title": "Math Assignment",
+      "description": "Exercices 12 à 25 p.87"
+    }
   ],
   "2026-02-18": [
-    { "key": "exam", "color": "#FF0000", "title": "History Test" }
+    {
+      "key": "exam",
+      "color": "#FF0000",
+      "title": "History Test",
+      "description": "Première Guerre mondiale",
+      "hours": "8:00 - 10:00"
+    }
   ],
   "2026-02-20": [
-    { "key": "meeting", "color": "#0000FF", "title": "Club Meeting" }
+    {
+      "key": "meeting",
+      "color": "#0000FF",
+      "title": "Club Meeting",
+      "description": "Préparation événement",
+      "hours": "12:30 - 13:30"
+    }
   ],
   "2026-02-25": [
-    { "key": "homework", "color": "#FFA500", "title": "Science Project" }
+    {
+      "key": "homework",
+      "color": "#FFA500",
+      "title": "Science Project",
+      "description": "Rapport final à rendre"
+    }
   ]
 }
