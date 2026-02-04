@@ -33,7 +33,7 @@ export default function DashboardScreen() {
         <title>Dashboard - Dash Student</title>
       </Head>
 
-      
+
       <ImageIcon
         source={teckelImage}
         width={120}
@@ -46,41 +46,39 @@ export default function DashboardScreen() {
       )}
 
       {/* Upcoming Exams Section */}
-      <Card title="Prochains examens" style={styles.section}>
-        <View style={styles.cardList}>
-          <SmallCard
-            icon={
-              <IconBadge
-                icon="calculator"
-                backgroundColor="#FEF3C7"
-                color="#D97706"
-              />
-            }
-            rightElement={<Tag text="J-21" />}
-          >
-            <ThemedText bold>Maths - Bac blanc</ThemedText>
-            <ThemedText variant="caption" color={Colors.primary}>
-              12 février - Coef. 7
-            </ThemedText>
-          </SmallCard>
+      <View style={styles.cardList}>
+        <SmallCard
+          icon={
+            <IconBadge
+              icon="calculator"
+              backgroundColor="#FEF3C7"
+              color="#D97706"
+            />
+          }
+          rightElement={<Tag text="J-21" />}
+        >
+          <ThemedText bold>Maths - Bac blanc</ThemedText>
+          <ThemedText variant="caption" color={Colors.primary}>
+            12 février - Coef. 7
+          </ThemedText>
+        </SmallCard>
 
-          <SmallCard
-            icon={
-              <IconBadge
-                icon="flask"
-                backgroundColor={Colors.greyLight}
-                color={Colors.greyText}
-              />
-            }
-            rightElement={<Tag text="J-6" />}
-          >
-            <ThemedText bold>Physique - Controle</ThemedText>
-            <ThemedText variant="caption" color={Colors.greyText}>
-              28 janvier - Coef. 5
-            </ThemedText>
-          </SmallCard>
-        </View>
-      </Card>
+        <SmallCard
+          icon={
+            <IconBadge
+              icon="flask"
+              backgroundColor={Colors.greyLight}
+              color={Colors.greyText}
+            />
+          }
+          rightElement={<Tag text="J-6" />}
+        >
+          <ThemedText bold>Physique - Controle</ThemedText>
+          <ThemedText variant="caption" color={Colors.greyText}>
+            28 janvier - Coef. 5
+          </ThemedText>
+        </SmallCard>
+      </View>
 
       {/* Study Progress Section */}
       <Card title="Progression" style={styles.section}>

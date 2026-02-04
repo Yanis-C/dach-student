@@ -63,7 +63,7 @@ export default function PlanningScreen() {
           size={20}
           color={Colors.white}
           backgroundColor={Colors.secondary}
-          style={{ marginRight: Spacing.sm, borderRadius: Radius.md }}
+          style={{ marginRight: Spacing.sm }}
         />
       ),
     });

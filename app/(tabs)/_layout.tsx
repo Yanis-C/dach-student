@@ -59,8 +59,8 @@ export default function TabsLayout() {
                     />
                 ),
             }} />
-            <Tabs.Screen name="subjects" options={{ 
-                title: "Subjects",
+            <Tabs.Screen name="subjects" options={{
+                title: "Exams",
                 tabBarIcon: ({ color, focused }) => (
                     <Ionicons
                         name={focused ? "book" : "book-outline"}
