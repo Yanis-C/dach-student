@@ -10,7 +10,10 @@ interface SwitchButtonProps<T extends string> {
   labels: [string, string];
   value: T;
   onChange: (value: T) => void;
+  radius?: number;
   style?: ViewStyle;
+  activeStyle?: ViewStyle;
+  activeTextColor?: string;
 }
 
 export function SwitchButton<T extends string>({
@@ -18,10 +21,13 @@ export function SwitchButton<T extends string>({
   labels,
   value,
   onChange,
+  radius = Radius.full,
   style,
+  activeStyle,
+  activeTextColor = Colors.black,
 }: SwitchButtonProps<T>) {
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, { borderRadius: radius }, style]}>
       {options.map((option, index) => {
         const isActive = value === option;
         return (
@@ -30,13 +36,14 @@ export function SwitchButton<T extends string>({
             onPress={() => onChange(option)}
             style={({ pressed }) => [
               styles.button,
-              isActive && styles.activeButton,
+              { borderRadius: radius },
+              isActive && [styles.activeButton, activeStyle],
               pressed && !isActive && styles.pressed,
             ]}
           >
             <ThemedText
               bold={isActive}
-              color={isActive ? Colors.black : Colors.greyText}
+              color={isActive ? activeTextColor : Colors.greyText}
             >
               {labels[index]}
             </ThemedText>
@@ -51,14 +58,12 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: Colors.greyLight,
-    borderRadius: Radius.full,
     padding: Spacing.xs,
   },
   button: {
     flex: 1,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
-    borderRadius: Radius.full,
     alignItems: 'center',
   },
   activeButton: {

@@ -1,20 +1,21 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { Menu } from 'react-native-paper';
-import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
-import { z } from 'zod';
+
+import { Ionicons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
+import { Controller, SubmitHandler, useForm } from 'react-hook-form';
+import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
+import { z } from 'zod';
 
 import { BottomModal } from '@/components/base/BottomModal';
 import { Button } from '@/components/base/Button';
+import { Dropdown } from '@/components/base/Dropdown';
 import { Input } from '@/components/base/Input';
 import { ThemedText } from '@/components/base/ThemedText';
-import { Radius, Spacing } from '@/constants/Spacing';
 import { Colors } from '@/constants/Colors';
+import { Radius, Spacing } from '@/constants/Spacing';
 
 dayjs.locale('fr');
 
@@ -49,7 +50,6 @@ const eventSchema = z.object({
 type EventFormData = z.infer<typeof eventSchema>;
 
 export default function EventForm({ isVisible, onClose }: Props) {
-  const [subjectMenuVisible, setSubjectMenuVisible] = useState(false);
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [timePickerVisible, setTimePickerVisible] = useState(false);
 
@@ -75,8 +75,6 @@ export default function EventForm({ isVisible, onClose }: Props) {
   const selectedSubjectId = watch('subjectId');
   const selectedDate = watch('date');
   const selectedTime = watch('time');
-
-  const selectedSubject = MOCK_SUBJECTS.find((s) => s.id === selectedSubjectId);
 
   // Parse time string to hours/minutes for the time picker
   const parseTime = (timeStr: string | undefined) => {
@@ -171,42 +169,12 @@ export default function EventForm({ isVisible, onClose }: Props) {
                 Matière
               </ThemedText>
             </View>
-            <Menu
-              visible={subjectMenuVisible}
-              onDismiss={() => setSubjectMenuVisible(false)}
-              anchor={
-                <Pressable
-                  style={styles.selectInput}
-                  onPress={() => setSubjectMenuVisible(true)}
-                >
-                  {selectedSubject && (
-                    <View style={[styles.subjectDot, { backgroundColor: selectedSubject.color }]} />
-                  )}
-                  <ThemedText
-                    style={styles.selectInputText}
-                    color={selectedSubject ? Colors.black : Colors.greyText}
-                  >
-                    {selectedSubject?.name || 'Sélectionner une matière...'}
-                  </ThemedText>
-                  <Ionicons name="chevron-down" size={20} color={Colors.greyText} />
-                </Pressable>
-              }
-              contentStyle={styles.menuContent}
-            >
-              {MOCK_SUBJECTS.map((subject) => (
-                <Menu.Item
-                  key={subject.id}
-                  onPress={() => {
-                    setValue('subjectId', subject.id);
-                    setSubjectMenuVisible(false);
-                  }}
-                  title={subject.name}
-                  leadingIcon={() => (
-                    <View style={[styles.subjectDot, { backgroundColor: subject.color }]} />
-                  )}
-                />
-              ))}
-            </Menu>
+            <Dropdown
+              options={MOCK_SUBJECTS.map((s) => ({ id: s.id, label: s.name, color: s.color }))}
+              value={selectedSubjectId}
+              onChange={(id) => setValue('subjectId', id)}
+              placeholder="Sélectionner une matière..."
+            />
           </View>
         )}
 
@@ -341,28 +309,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.secondary,
     borderStyle: 'dashed',
-  },
-  selectInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.greyLight,
-    backgroundColor: Colors.white,
-  },
-  selectInputText: {
-    flex: 1,
-  },
-  menuContent: {
-    backgroundColor: Colors.white,
-  },
-  subjectDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
   },
   dateTimeRow: {
     flexDirection: 'row',

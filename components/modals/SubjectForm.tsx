@@ -15,6 +15,7 @@ import { useSubjectsStore } from '@/stores/subjectsStore';
 type Props = {
   isVisible: boolean;
   onClose: () => void;
+  onSubjectCreated?: (subject: { name: string; color: string; icon: string }) => void;
 };
 
 const THEME_COLORS = [
@@ -58,7 +59,7 @@ const subjectSchema = z.object({
 
 type SubjectFormData = z.infer<typeof subjectSchema>;
 
-export default function SubjectForm({ isVisible, onClose }: Props) {
+export default function SubjectForm({ isVisible, onClose, onSubjectCreated }: Props) {
   const addSubject = useSubjectsStore((state) => state.addSubject);
 
   const {
@@ -88,6 +89,7 @@ export default function SubjectForm({ isVisible, onClose }: Props) {
       chapters: 0,
       completedChapters: 0,
     });
+    onSubjectCreated?.({ name: data.name, color: data.color, icon: data.icon });
     reset();
     onClose();
   };
