@@ -198,7 +198,7 @@ export default function ExamForm({ isVisible, onClose }: Props) {
           {/* Dropdown to add subjects */}
           <Dropdown
             options={[...unselectedSubjectsDropdown, { id: 'add', label: 'Nouvelle matière' }]}
-            onChange={(optionId) =>  setSelectedSubjectId(optionId)}
+            onChange={(optionId) => setSelectedSubjectId(optionId)}
             value={selectedSubjectId}
             placeholder="Ajouter une matière..."
           />
@@ -278,13 +278,16 @@ export default function ExamForm({ isVisible, onClose }: Props) {
         <View style={styles.buttonRow}>
           <Button
             title="Annuler"
-            variant="outline"
             onPress={handleClose}
+            variant="filled"
+            color={Colors.greyText}
+            backgroundColor={Colors.greyLight}
             style={styles.cancelButton}
           />
           <Button
-            title="+ Créer l'examen"
+            title="Créer"
             variant="filled"
+            iconLeft='add'
             backgroundColor={Colors.secondary}
             color={Colors.white}
             onPress={handleSubmit}
@@ -380,6 +383,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   submitButton: {
-    flex: 1.5,
+    flex: 1,
   },
 });

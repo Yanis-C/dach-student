@@ -1,7 +1,8 @@
-import { Pressable, StyleSheet, ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
-import { Radius } from '@/constants/Spacing';
+import { Radius, Spacing } from '@/constants/Spacing';
 import { ThemedText } from '@/components/base/ThemedText';
 
 type ButtonVariant = 'filled' | 'outline' | 'plain';
@@ -13,39 +14,38 @@ interface ButtonProps {
   color?: string;
   backgroundColor?: string;
   disabled?: boolean;
+  iconLeft?: keyof typeof Ionicons.glyphMap;
+  iconRight?: keyof typeof Ionicons.glyphMap;
+  iconSize?: number;
   style?: ViewStyle;
 }
 
 export function Button({
   title,
   onPress,
+  iconLeft,
+  iconRight,
+  iconSize = 20,
   variant = 'filled',
   color = Colors.white,
-  backgroundColor = Colors.primary,
+  backgroundColor = Colors.secondary,
   disabled = false,
   style,
 }: ButtonProps) {
   
   const getBackgroundColor = () => {
-    if (backgroundColor) return backgroundColor;
-    if (variant === 'filled') return Colors.primary;
+    if (variant === 'filled') return backgroundColor;
     return 'transparent';
   };
 
   const getTextColor = () => {
-    if (color) return color;
-    if (variant === 'filled') return Colors.white;
-    return Colors.primary;
+    if (variant === 'filled') return color;
+    return backgroundColor;
   };
 
   const getBorderStyle = () => {
-    if (variant === 'outline') {
-      return {
-        borderWidth: 2,
-        borderColor: color || Colors.primary,
-      };
-    }
-    return {};
+    if (variant === 'outline') return backgroundColor;
+    return 'transparent';
   };
 
   return (
@@ -54,16 +54,33 @@ export function Button({
       disabled={disabled}
       style={({ pressed }) => [
         styles.base,
-        { backgroundColor: getBackgroundColor() },
-        getBorderStyle(),
+        { backgroundColor: getBackgroundColor(), borderColor: getBorderStyle() },
         disabled && styles.disabled,
         pressed && styles.pressed,
         style,
       ]}
     >
-      <ThemedText style={[styles.text, { color: getTextColor() }]}>
-        {title}
-      </ThemedText>
+      <View style={styles.content}>
+        {iconLeft && (
+          <Ionicons
+            name={iconLeft}
+            size={iconSize}
+            color={getTextColor()}
+            style={styles.iconLeft}
+          />
+        )}
+        <ThemedText style={[styles.text, { color: getTextColor() }]}>
+          {title}
+        </ThemedText>
+        {iconRight && (
+          <Ionicons
+            name={iconRight}
+            size={iconSize}
+            color={getTextColor()}
+            style={styles.iconRight}
+          />
+        )}
+      </View>
     </Pressable>
   );
 }
@@ -73,6 +90,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: Radius.md,
+    alignItems: 'center',
+    borderWidth: 2,
+  },
+  content: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
   disabled: {
@@ -84,5 +106,11 @@ const styles = StyleSheet.create({
   text: {
     fontFamily: 'Comfortaa_700Bold',
     fontSize: 16,
+  },
+  iconLeft: {
+    marginRight: Spacing.sm,
+  },
+  iconRight: {
+    marginLeft: Spacing.sm,
   },
 });

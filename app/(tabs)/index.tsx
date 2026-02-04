@@ -67,8 +67,8 @@ export default function DashboardScreen() {
           icon={
             <IconBadge
               icon="flask"
-              backgroundColor={Colors.greyLight}
-              color={Colors.greyText}
+              backgroundColor={Colors.secondary}
+              color="#FFFFFF"
             />
           }
           rightElement={<Tag text="J-6" />}

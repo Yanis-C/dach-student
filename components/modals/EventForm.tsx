@@ -114,31 +114,20 @@ export default function EventForm({ isVisible, onClose }: Props) {
           </View>
           <View style={styles.typeSelector}>
             {EVENT_TYPES.map((eventType) => (
-              <Pressable
+              <Button
                 key={eventType.id}
-                style={[
-                  styles.typeButton,
-                  selectedType === eventType.id && styles.typeButtonSelected,
-                ]}
+                title={eventType.label}
+                variant='outline'
                 onPress={() => {
                   setValue('type', eventType.id);
                   if (eventType.id === 'activity') {
                     setValue('subjectId', undefined);
                   }
                 }}
-              >
-                <Ionicons
-                  name={eventType.icon as keyof typeof Ionicons.glyphMap}
-                  size={20}
-                  color={selectedType === eventType.id ? Colors.secondary : Colors.greyText}
-                />
-                <ThemedText
-                  variant="label"
-                  color={selectedType === eventType.id ? Colors.secondary : Colors.greyText}
-                >
-                  {eventType.label}
-                </ThemedText>
-              </Pressable>
+                iconLeft={eventType.icon as keyof typeof Ionicons.glyphMap}
+                color={selectedType === eventType.id ? Colors.secondary : Colors.greyLight}
+                backgroundColor={selectedType === eventType.id ? Colors.secondary : Colors.greyLight}
+              />
             ))}
           </View>
         </View>
@@ -229,9 +218,10 @@ export default function EventForm({ isVisible, onClose }: Props) {
           <Button
             title="Annuler"
             onPress={handleClose}
-            variant="outline"
+            variant="filled"
             color={Colors.greyText}
-            style={styles.cancelButton}
+            backgroundColor={Colors.greyLight}
+            style={styles.button}
           />
           <Button
             title="Créer ✓"
@@ -239,7 +229,7 @@ export default function EventForm({ isVisible, onClose }: Props) {
             variant="filled"
             color={Colors.white}
             backgroundColor={Colors.secondary}
-            style={styles.submitButton}
+            style={styles.button}
           />
         </View>
       </ScrollView>
@@ -334,11 +324,7 @@ const styles = StyleSheet.create({
     marginTop: 'auto',
     paddingTop: Spacing.lg,
   },
-  cancelButton: {
-    flex: 1,
-    borderRadius: Radius.lg,
-  },
-  submitButton: {
+  button: {
     flex: 1,
     borderRadius: Radius.lg,
   },
