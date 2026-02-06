@@ -12,6 +12,10 @@ import { Colors } from '@/constants/Colors';
 import { CommonStyles } from '@/constants/CommonStyles';
 import { Radius, Spacing } from '@/constants/Spacing';
 import { SubjectFormData, subjectSchema } from '@/types/Subject';
+import { useSQLiteContext } from 'expo-sqlite';
+import { drizzle } from 'drizzle-orm/expo-sqlite';
+import * as schema from '@/db/schema';
+import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
 
 type Props = {
   isVisible: boolean;
@@ -50,6 +54,10 @@ const THEME_ICONS = [
 ] as const;
 
 export default function SubjectForm({ isVisible, onClose, onSubjectCreated }: Props) {
+  const db = useSQLiteContext();
+  const drizzleDb = drizzle(db, { schema });
+  useDrizzleStudio(db);
+
   const {
     control,
     handleSubmit,
@@ -70,6 +78,11 @@ export default function SubjectForm({ isVisible, onClose, onSubjectCreated }: Pr
   const selectedIcon = watch('icon');
 
   const onSubmit: SubmitHandler<SubjectFormData> = (data) => {
+    drizzleDb.insert(schema.subjects).values({
+      name: data.name,
+      color: data.color,
+      icon: data.icon,
+    }).run();
     onSubjectCreated?.(data);
     reset();
     onClose();

@@ -5,8 +5,8 @@ export type Subject = {
   name: string;
   color: string;
   icon: string;
-  chapters: number;
-  completedChapters: number;
+  chapters?: number;
+  completedChapters?: number;
 };
 
 // Subject form types
@@ -26,8 +26,8 @@ export type SubjectEntity = {
   name: string;
   color: string;
   icon: string;
-  chapters: number;
-  completedChapters: number;
+  chapters?: number;
+  completedChapters?: number;
   createdAt?: Date;
   updatedAt?: Date;
 };

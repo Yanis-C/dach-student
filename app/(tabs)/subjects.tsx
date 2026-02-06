@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import Head from 'expo-router/head';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 import { SwitchButton } from '@/components/base/SwitchButton';
@@ -14,6 +14,10 @@ import { Colors } from '@/constants/Colors';
 import { CommonStyles } from '@/constants/CommonStyles';
 import { Radius, Spacing } from '@/constants/Spacing';
 import { Subject } from '@/types/Subject';
+import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
+import { useSQLiteContext } from 'expo-sqlite';
+import { drizzle } from 'drizzle-orm/expo-sqlite';
+import * as schema from '@/db/schema';
 
 type ViewType = 'exams' | 'subjects';
 
@@ -84,6 +88,18 @@ const MOCK_EXAMS: MockExam[] = [
 ];
 
 export default function ExamsScreen() {
+  const db = useSQLiteContext();
+  const drizzleDb = drizzle(db, { schema });
+  useDrizzleStudio(db);
+
+  useEffect(() => {
+
+    (async () => {
+      const dbSubjects2 = await drizzleDb.query.subjects.findMany();
+      console.log('Subjects from DB 2 (query builder):', dbSubjects2);
+    })();
+  }, [])
+
   const [activeView, setActiveView] = useState<ViewType>('exams');
   const [isSubjectFormVisible, setIsSubjectFormVisible] = useState(false);
   const [isExamFormVisible, setIsExamFormVisible] = useState(false);
