@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 
-import { ExamData } from '@/types/exam';
+import { ExamData } from '@/types/Exam';
 import { Colors } from '@/constants/Colors';
 import { Radius } from '@/constants/Spacing';
 import { FontFamily, FontSize } from '@/constants/Typography';

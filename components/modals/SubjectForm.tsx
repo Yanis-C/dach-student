@@ -1,21 +1,22 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Ionicons } from '@expo/vector-icons';
-import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { z } from 'zod';
+
+import { Ionicons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 
 import { BottomModal } from '@/components/base/BottomModal';
 import { Button } from '@/components/base/Button';
 import { Input } from '@/components/base/Input';
 import { ThemedText } from '@/components/base/ThemedText';
-import { Radius, Spacing } from '@/constants/Spacing';
 import { Colors } from '@/constants/Colors';
-import { useSubjectsStore } from '@/stores/subjectsStore';
+import { CommonStyles } from '@/constants/CommonStyles';
+import { Radius, Spacing } from '@/constants/Spacing';
+import { SubjectFormData, subjectSchema } from '@/types/Subject';
 
 type Props = {
   isVisible: boolean;
   onClose: () => void;
-  onSubjectCreated?: (subject: { name: string; color: string; icon: string }) => void;
+  onSubjectCreated?: (subject: SubjectFormData) => void;
 };
 
 const THEME_COLORS = [
@@ -48,20 +49,7 @@ const THEME_ICONS = [
   'people',
 ] as const;
 
-const subjectSchema = z.object({
-  name: z
-    .string()
-    .min(1, { message: 'Le nom de la matière est requis.' })
-    .max(50, { message: 'Le nom ne peut pas dépasser 50 caractères.' }),
-  color: z.string().min(1),
-  icon: z.string().min(1),
-});
-
-type SubjectFormData = z.infer<typeof subjectSchema>;
-
 export default function SubjectForm({ isVisible, onClose, onSubjectCreated }: Props) {
-  const addSubject = useSubjectsStore((state) => state.addSubject);
-
   const {
     control,
     handleSubmit,
@@ -82,14 +70,7 @@ export default function SubjectForm({ isVisible, onClose, onSubjectCreated }: Pr
   const selectedIcon = watch('icon');
 
   const onSubmit: SubmitHandler<SubjectFormData> = (data) => {
-    addSubject({
-      name: data.name,
-      color: data.color,
-      icon: data.icon,
-      chapters: 0,
-      completedChapters: 0,
-    });
-    onSubjectCreated?.({ name: data.name, color: data.color, icon: data.icon });
+    onSubjectCreated?.(data);
     reset();
     onClose();
   };
@@ -120,8 +101,8 @@ export default function SubjectForm({ isVisible, onClose, onSubjectCreated }: Pr
         />
 
         {/* Color Picker */}
-        <View style={styles.fieldSection}>
-          <View style={styles.fieldHeader}>
+        <View style={CommonStyles.fieldSection}>
+          <View style={CommonStyles.fieldHeader}>
             <Ionicons name="color-palette-outline" size={16} color={Colors.greyText} />
             <ThemedText variant="label" color={Colors.greyText}>
               Couleur
@@ -147,8 +128,8 @@ export default function SubjectForm({ isVisible, onClose, onSubjectCreated }: Pr
         </View>
 
         {/* Icon Picker */}
-        <View style={styles.fieldSection}>
-          <View style={styles.fieldHeader}>
+        <View style={CommonStyles.fieldSection}>
+          <View style={CommonStyles.fieldHeader}>
             <Ionicons name="sparkles-outline" size={16} color={Colors.greyText} />
             <ThemedText variant="label" color={Colors.greyText}>
               Icône
@@ -195,15 +176,6 @@ const styles = StyleSheet.create({
   form: {
     gap: Spacing.xl,
     flexGrow: 1,
-  },
-  fieldSection: {
-    gap: Spacing.sm,
-  },
-  fieldHeader: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'flex-start',
-    gap: Spacing.sm,
   },
   pickerList: {
     gap: Spacing.sm,

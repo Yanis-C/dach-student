@@ -7,7 +7,6 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { DatePickerModal, TimePickerModal } from 'react-native-paper-dates';
-import { z } from 'zod';
 
 import { BottomModal } from '@/components/base/BottomModal';
 import { Button } from '@/components/base/Button';
@@ -15,7 +14,9 @@ import { Dropdown } from '@/components/base/Dropdown';
 import { Input } from '@/components/base/Input';
 import { ThemedText } from '@/components/base/ThemedText';
 import { Colors } from '@/constants/Colors';
+import { CommonStyles } from '@/constants/CommonStyles';
 import { Radius, Spacing } from '@/constants/Spacing';
+import { EventFormData, eventSchema } from '@/types/Event';
 
 dayjs.locale('fr');
 
@@ -35,19 +36,6 @@ const EVENT_TYPES = [
   { id: 'revision', label: 'Révision', icon: 'book-outline' },
 ] as const;
 
-
-const eventSchema = z.object({
-  type: z.enum(['activity', 'revision']),
-  title: z
-    .string()
-    .min(1, { message: "Le titre de l'événement est requis." })
-    .max(100, { message: 'Le titre ne peut pas dépasser 100 caractères.' }),
-  subjectId: z.string().optional(),
-  date: z.date({ message: 'La date est requise.' }),
-  time: z.string().optional(),
-});
-
-type EventFormData = z.infer<typeof eventSchema>;
 
 export default function EventForm({ isVisible, onClose }: Props) {
   const [datePickerVisible, setDatePickerVisible] = useState(false);
@@ -105,8 +93,8 @@ export default function EventForm({ isVisible, onClose }: Props) {
     >
       <ScrollView contentContainerStyle={styles.form} showsVerticalScrollIndicator={false}>
         {/* Event Type Selector */}
-        <View style={styles.fieldSection}>
-          <View style={styles.fieldHeader}>
+        <View style={CommonStyles.fieldSection}>
+          <View style={CommonStyles.fieldHeader}>
             <Ionicons name="sparkles-outline" size={16} color={Colors.greyText} />
             <ThemedText variant="label" color={Colors.greyText}>
               Type d&apos;événement
@@ -151,8 +139,8 @@ export default function EventForm({ isVisible, onClose }: Props) {
 
         {/* Subject Selector (only for Révision) */}
         {selectedType === 'revision' && (
-          <View style={styles.fieldSection}>
-            <View style={styles.fieldHeader}>
+          <View style={CommonStyles.fieldSection}>
+            <View style={CommonStyles.fieldHeader}>
               <Ionicons name="book-outline" size={16} color={Colors.greyText} />
               <ThemedText variant="label" color={Colors.greyText}>
                 Matière
@@ -170,15 +158,15 @@ export default function EventForm({ isVisible, onClose }: Props) {
         {/* Date and Time Row */}
         <View style={styles.dateTimeRow}>
           {/* Date Picker */}
-          <View style={[styles.fieldSection, { flex: 1 }]}>
-            <View style={styles.fieldHeader}>
+          <View style={[CommonStyles.fieldSection, CommonStyles.buttonFlex]}>
+            <View style={CommonStyles.fieldHeader}>
               <Ionicons name="calendar-outline" size={16} color={Colors.greyText} />
               <ThemedText variant="label" color={Colors.greyText}>
                 Date
               </ThemedText>
             </View>
             <Pressable
-              style={[styles.pickerInput, errors.date && styles.pickerInputError]}
+              style={[CommonStyles.pickerInput, errors.date && CommonStyles.pickerInputError]}
               onPress={() => setDatePickerVisible(true)}
             >
               <ThemedText color={selectedDate ? Colors.black : Colors.greyText}>
@@ -194,15 +182,15 @@ export default function EventForm({ isVisible, onClose }: Props) {
           </View>
 
           {/* Time Picker */}
-          <View style={[styles.fieldSection, { flex: 1 }]}>
-            <View style={styles.fieldHeader}>
+          <View style={[CommonStyles.fieldSection, CommonStyles.buttonFlex]}>
+            <View style={CommonStyles.fieldHeader}>
               <Ionicons name="time-outline" size={16} color={Colors.greyText} />
               <ThemedText variant="label" color={Colors.greyText}>
                 Heure
               </ThemedText>
             </View>
             <Pressable
-              style={styles.pickerInput}
+              style={CommonStyles.pickerInput}
               onPress={() => setTimePickerVisible(true)}
             >
               <ThemedText color={selectedTime ? Colors.black : Colors.greyText}>
@@ -221,7 +209,7 @@ export default function EventForm({ isVisible, onClose }: Props) {
             variant="filled"
             color={Colors.greyText}
             backgroundColor={Colors.greyLight}
-            style={styles.button}
+            style={[CommonStyles.buttonFlex, styles.buttonRadius]}
           />
           <Button
             title="Créer ✓"
@@ -229,7 +217,7 @@ export default function EventForm({ isVisible, onClose }: Props) {
             variant="filled"
             color={Colors.white}
             backgroundColor={Colors.secondary}
-            style={styles.button}
+            style={[CommonStyles.buttonFlex, styles.buttonRadius]}
           />
         </View>
       </ScrollView>
@@ -269,54 +257,13 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: Spacing.lg,
   },
-  fieldSection: {
-    gap: Spacing.sm,
-  },
-  fieldHeader: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'flex-start',
-    gap: Spacing.sm,
-  },
   typeSelector: {
     flexDirection: 'row',
     gap: Spacing.md,
   },
-  typeButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.greyLight,
-    backgroundColor: Colors.white,
-  },
-  typeButtonSelected: {
-    borderWidth: 2,
-    borderColor: Colors.secondary,
-    borderStyle: 'dashed',
-  },
   dateTimeRow: {
     flexDirection: 'row',
     gap: Spacing.md,
-  },
-  pickerInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.greyLight,
-    backgroundColor: Colors.white,
-  },
-  pickerInputError: {
-    borderColor: Colors.error,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -324,8 +271,7 @@ const styles = StyleSheet.create({
     marginTop: 'auto',
     paddingTop: Spacing.lg,
   },
-  button: {
-    flex: 1,
+  buttonRadius: {
     borderRadius: Radius.lg,
   },
 });

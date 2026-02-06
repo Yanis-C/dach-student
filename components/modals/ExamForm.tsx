@@ -1,6 +1,12 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+
+import { Ionicons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
+import { Controller, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
+import { DatePickerModal } from 'react-native-paper-dates';
 
 import { BottomModal } from '@/components/base/BottomModal';
 import { Button } from '@/components/base/Button';
@@ -8,15 +14,11 @@ import { Dropdown } from '@/components/base/Dropdown';
 import { Input } from '@/components/base/Input';
 import { ThemedText } from '@/components/base/ThemedText';
 import { Colors } from '@/constants/Colors';
+import { CommonStyles } from '@/constants/CommonStyles';
 import { Radius, Spacing } from '@/constants/Spacing';
 import { FontFamily, FontSize } from '@/constants/Typography';
+import { ExamFormData, examSchema } from '@/types/Exam';
 import SubjectForm from './SubjectForm';
-import z from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, Controller, SubmitHandler, useFieldArray } from 'react-hook-form';
-import { DatePickerModal } from 'react-native-paper-dates';
-import dayjs from 'dayjs';
-import 'dayjs/locale/fr';
 
 dayjs.locale('fr');
 
@@ -61,25 +63,7 @@ const AVAILABLE_SUBJECTS = [
 ];
 
 export default function ExamForm({ isVisible, onClose }: Props) {
-
-  // ===== Form setup =====
-  const examSchema = z.object({
-    name: z.string().min(1, 'Le nom de l\'examen est requis'),
-    date: z.date({ message: 'La date de l\'examen est requise' }),
-    subjects: z.array(z.object({
-      id: z.string(),
-      chapters: z.array(z.object({
-        id: z.string(),
-        name: z.string(),
-        selected: z.boolean(),
-      })),
-      coefficient: z.number().min(1, 'Le coefficient doit être au moins 1'),
-    })),
-  })
-
-  type ExamFormType = z.infer<typeof examSchema>;
-
-  const { control, handleSubmit, formState: { errors }, watch, setValue, reset } = useForm<ExamFormType>({
+  const { control, handleSubmit, formState: { errors }, watch, setValue, reset } = useForm<ExamFormData>({
     resolver: zodResolver(examSchema),
     defaultValues: {
       name: '',
@@ -99,7 +83,7 @@ export default function ExamForm({ isVisible, onClose }: Props) {
   } = useFieldArray({ control, name: 'subjects', keyName: '_id' });
 
 
-  const onSubmit: SubmitHandler<ExamFormType> = (data: ExamFormType) => {
+  const onSubmit: SubmitHandler<ExamFormData> = (data: ExamFormData) => {
     console.log('Create exam with form data:', data);
     handleClose();
   }
@@ -193,14 +177,14 @@ export default function ExamForm({ isVisible, onClose }: Props) {
         />
 
         {/* Date input */}
-        <View style={styles.fieldSection}>
-          <View style={styles.fieldHeader}>
+        <View style={CommonStyles.fieldSection}>
+          <View style={CommonStyles.fieldHeader}>
             <Ionicons name="calendar-outline" size={16} color={Colors.greyText} />
             <ThemedText variant="label" color={Colors.greyText}>Date</ThemedText>
           </View>
           <View>
             <Pressable
-              style={[styles.pickerInput, errors.date && styles.pickerInputError]}
+              style={[CommonStyles.pickerInput, errors.date && CommonStyles.pickerInputError]}
               onPress={() => setDatePickerVisible(true)}
             >
               <ThemedText color={selectedDate ? Colors.black : Colors.greyText}>
@@ -216,7 +200,7 @@ export default function ExamForm({ isVisible, onClose }: Props) {
         {/* Subjects & Chapters */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <View style={styles.fieldHeader}>
+            <View style={CommonStyles.fieldHeader}>
               <Ionicons name="book-outline" size={16} color={Colors.greyText} />
               <ThemedText variant="label" color={Colors.greyText}>Matières</ThemedText>
             </View>
@@ -320,7 +304,7 @@ export default function ExamForm({ isVisible, onClose }: Props) {
             variant="filled"
             color={Colors.greyText}
             backgroundColor={Colors.greyLight}
-            style={styles.cancelButton}
+            style={CommonStyles.buttonFlex}
           />
           <Button
             title="Créer"
@@ -329,7 +313,7 @@ export default function ExamForm({ isVisible, onClose }: Props) {
             backgroundColor={Colors.secondary}
             color={Colors.white}
             onPress={handleSubmit(onSubmit)}
-            style={styles.submitButton}
+            style={CommonStyles.buttonFlex}
           />
         </View>
       </ScrollView>
@@ -371,28 +355,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  fieldSection: {
-    gap: Spacing.sm,
-  },
-  fieldHeader: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: Spacing.sm,
-  },
-  pickerInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.black + '20',
-    backgroundColor: Colors.white,
-  },
-  pickerInputError: {
-    borderColor: Colors.error,
   },
   subjectsList: {
     gap: Spacing.sm,
@@ -451,11 +413,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.md,
     marginTop: Spacing.lg,
-  },
-  cancelButton: {
-    flex: 1,
-  },
-  submitButton: {
-    flex: 1,
   },
 });

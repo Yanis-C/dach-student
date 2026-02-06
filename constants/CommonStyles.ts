@@ -76,4 +76,35 @@ export const CommonStyles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+
+  // Form styles
+  fieldSection: {
+    gap: Spacing.sm,
+  },
+  fieldHeader: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: Spacing.sm,
+  },
+  pickerInput: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.greyLight,
+    backgroundColor: Colors.white,
+  },
+  pickerInputError: {
+    borderColor: Colors.error,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    gap: Spacing.md,
+  },
+  buttonFlex: {
+    flex: 1,
+  },
 });

@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { Colors } from "@/constants/Colors";
 import { CommonStyles } from "@/constants/CommonStyles";
 import { Spacing } from "@/constants/Spacing";
-import { ExamData } from "@/types/exam";
+import { ExamData } from "@/types/Exam";
 
 import { Card } from "@/components/base/Card";
 import { IconBadge } from "@/components/base/IconBadge";

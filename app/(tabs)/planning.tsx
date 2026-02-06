@@ -18,7 +18,7 @@ import EventForm from '@/components/modals/EventForm';
 
 import { IconButton } from '@/components/base/IconButton';
 import eventsData from '@/example/json/events.json';
-import { Event, EventsData } from '@/types/event';
+import { Event, EventsData } from '@/types/Event';
 
 dayjs.locale('fr');
 
