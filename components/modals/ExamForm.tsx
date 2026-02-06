@@ -11,25 +11,18 @@ import { Colors } from '@/constants/Colors';
 import { Radius, Spacing } from '@/constants/Spacing';
 import { FontFamily, FontSize } from '@/constants/Typography';
 import SubjectForm from './SubjectForm';
+import z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm, Controller, SubmitHandler, useFieldArray } from 'react-hook-form';
+import { DatePickerModal } from 'react-native-paper-dates';
+import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
+
+dayjs.locale('fr');
 
 type Props = {
   isVisible: boolean;
   onClose: () => void;
-};
-
-type Chapter = {
-  id: string;
-  name: string;
-  selected: boolean;
-};
-
-type SubjectWithChapters = {
-  id: string;
-  name: string;
-  color: string;
-  coefficient: number;
-  chapters: Chapter[];
-  expanded: boolean;
 };
 
 // Available subjects that can be added to an exam
@@ -68,209 +61,254 @@ const AVAILABLE_SUBJECTS = [
 ];
 
 export default function ExamForm({ isVisible, onClose }: Props) {
-  const [name, setName] = useState('');
-  const [date, setDate] = useState('');
-  const [selectedSubjects, setSelectedSubjects] = useState<SubjectWithChapters[]>([]);
-  const [isSubjectFormVisible, setIsSubjectFormVisible] = useState(false);
 
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string | undefined>(undefined);
+  // ===== Form setup =====
+  const examSchema = z.object({
+    name: z.string().min(1, 'Le nom de l\'examen est requis'),
+    date: z.date({ message: 'La date de l\'examen est requise' }),
+    subjects: z.array(z.object({
+      id: z.string(),
+      chapters: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        selected: z.boolean(),
+      })),
+      coefficient: z.number().min(1, 'Le coefficient doit être au moins 1'),
+    })),
+  })
+
+  type ExamFormType = z.infer<typeof examSchema>;
+
+  const { control, handleSubmit, formState: { errors }, watch, setValue, reset } = useForm<ExamFormType>({
+    resolver: zodResolver(examSchema),
+    defaultValues: {
+      name: '',
+      date: undefined,
+      subjects: [],
+    }
+  });
+
+  //UI state
+  const [expandedSubjects, setExpandedSubjects] = useState<string[]>([]);
+
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const selectedDate = watch('date');
+
+  const {
+    fields: subjectFields, append: appendSubject, remove: removeSubject, update: updateSubject
+  } = useFieldArray({ control, name: 'subjects', keyName: '_id' });
+
+
+  const onSubmit: SubmitHandler<ExamFormType> = (data: ExamFormType) => {
+    console.log('Create exam with form data:', data);
+    handleClose();
+  }
+
+  const [isSubjectFormVisible, setIsSubjectFormVisible] = useState(false);
 
   // Subjects not yet added to the exam
   const unselectedSubjectsDropdown = AVAILABLE_SUBJECTS
-    .filter((s) => !selectedSubjects.find((sel) => sel.id === s.id))
+    .filter((s) => !subjectFields.find((sel) => sel.id === s.id))
     .map((s) => ({ id: s.id, label: s.name, color: s.color }));
 
 
+
+  const [subjectToAdd, setSubjectToAdd] = useState<string | undefined>(undefined);
+
   const onSubjectAdd = () => {
-    if (selectedSubjectId === 'add') {
+    if (subjectToAdd === 'new') {
       setIsSubjectFormVisible(true);
-    } else if (selectedSubjectId) {
-      handleAddSubject(selectedSubjectId);
+    } else if (subjectToAdd) {
+      handleAddSubject(subjectToAdd);
     }
-    setSelectedSubjectId(undefined);
+    setSubjectToAdd(undefined);
   };
+
+
+  // ===== Methods =====
 
   const handleAddSubject = (subjectId: string) => {
     const subject = AVAILABLE_SUBJECTS.find((s) => s.id === subjectId);
     if (subject) {
-      const newSubject: SubjectWithChapters = {
+      const newSubject = {
         id: subject.id,
-        name: subject.name,
-        color: subject.color,
         coefficient: 1,
-        chapters: subject.chapters.map((c) => ({ ...c, selected: false })),
-        expanded: false,
+        chapters: subject.chapters.map((c) => ({ id: c.id, name: c.name, selected: false })),
       };
-      setSelectedSubjects((prev) => [...prev, newSubject]);
+      appendSubject(newSubject);
     }
-  };
-
-  const handleSubjectCreated = (subject: { name: string; color: string; icon: string }) => {
-    console.log('New subject created in ExamForm:', subject);
-    setIsSubjectFormVisible(false);
-  };
-
-  const handleRemoveSubject = (subjectId: string) => {
-    setSelectedSubjects((prev) => prev.filter((s) => s.id !== subjectId));
   };
 
   const toggleSubjectExpanded = (subjectId: string) => {
-    setSelectedSubjects((prev) =>
-      prev.map((s) => (s.id === subjectId ? { ...s, expanded: !s.expanded } : s))
+    setExpandedSubjects(prev =>
+      prev.includes(subjectId)
+        ? prev.filter(id => id !== subjectId)
+        : [...prev, subjectId]
     );
   };
 
-  const toggleChapterSelected = (subjectId: string, chapterId: string) => {
-    setSelectedSubjects((prev) =>
-      prev.map((s) =>
-        s.id === subjectId
-          ? {
-            ...s,
-            chapters: s.chapters.map((c) =>
-              c.id === chapterId ? { ...c, selected: !c.selected } : c
-            ),
-          }
-          : s
-      )
-    );
+  const isExpanded = (subjectId: string) => expandedSubjects.includes(subjectId);
+
+  const handleRemoveSubject = (subjectIndex: number) => {
+    removeSubject(subjectIndex);
   };
 
-  const updateCoefficient = (subjectId: string, value: string) => {
-    const num = parseInt(value, 10);
-    if (!isNaN(num) || value === '') {
-      setSelectedSubjects((prev) =>
-        prev.map((s) =>
-          s.id === subjectId ? { ...s, coefficient: isNaN(num) ? 0 : num } : s
-        )
-      );
-    }
+  const toggleChapterSelected = (subjectIndex: number, chapterIndex: number) => {
+    const currentValue = subjectFields[subjectIndex].chapters[chapterIndex].selected;
+    setValue(`subjects.${subjectIndex}.chapters.${chapterIndex}.selected`, !currentValue);
+  };
+
+  //TODO: types
+  const handleSubjectCreated = (subject: { name: string; color: string; icon: string }) => {
+    console.log('New subject created in ExamForm:', subject);
+    setIsSubjectFormVisible(false);
+    //TODO: refresh AVAILABLE_SUBJECTS list with new subject from DB
   };
 
   const handleClose = () => {
-    setName('');
-    setDate('');
-    setSelectedSubjectId(undefined);
-    setSelectedSubjects([]);
+    reset();
+    setSubjectToAdd(undefined);
     onClose();
   };
 
-  const handleSubmit = () => {
-    console.log('Create exam:', { name, date, subjects: selectedSubjects });
-    handleClose();
-  };
 
   return (
-    <BottomModal isVisible={isVisible} onClose={handleClose} title="Nouvel examen" height="85%">
+    <BottomModal isVisible={isVisible} onClose={handleClose} title="Nouvel examen" height="65%">
       <ScrollView contentContainerStyle={styles.form} showsVerticalScrollIndicator={false}>
-        {/* Name input */}
-        <Input
-          label="Nom de l'examen"
-          placeholder="Baccalauréat 2026"
-          value={name}
-          onChangeText={setName}
+        <Controller
+          control={control}
+          name="name"
+          render={({ field: { onChange, onBlur, value }, fieldState: { error }, }) => (
+            <Input
+              label="Nom de l'examen"
+              labelColor={Colors.greyText}
+              labelIcon={"document-text-outline"}
+              placeholder="Baccalauréat 2026"
+              value={value}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              error={error?.message}
+            />
+          )}
         />
 
         {/* Date input */}
-        <Input
-          label="Date"
-          labelIcon="calendar-outline"
-          placeholder="15 Juin 2026"
-          value={date}
-          onChangeText={setDate}
-        />
+        <View style={styles.fieldSection}>
+          <View style={styles.fieldHeader}>
+            <Ionicons name="calendar-outline" size={16} color={Colors.greyText} />
+            <ThemedText variant="label" color={Colors.greyText}>Date</ThemedText>
+          </View>
+          <View>
+            <Pressable
+              style={[styles.pickerInput, errors.date && styles.pickerInputError]}
+              onPress={() => setDatePickerVisible(true)}
+            >
+              <ThemedText color={selectedDate ? Colors.black : Colors.greyText}>
+                {selectedDate ? dayjs(selectedDate).format('D MMMM YYYY') : 'Sélectionner une date...'}
+              </ThemedText>
+            </Pressable>
+            {errors.date && (
+              <ThemedText variant="caption" color={Colors.error} style={{marginTop: Spacing.xs}}>{errors.date.message}</ThemedText>
+            )}
+          </View>
+        </View>
 
         {/* Subjects & Chapters */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText variant="label" color={Colors.greyText}>
-              Matières
-            </ThemedText>
-            {selectedSubjectId && (
-              <Pressable onPress={onSubjectAdd}>
-                <ThemedText variant="caption" color={Colors.secondary} bold>
-                  + Ajouter
-                </ThemedText>
-              </Pressable>
+            <View style={styles.fieldHeader}>
+              <Ionicons name="book-outline" size={16} color={Colors.greyText} />
+              <ThemedText variant="label" color={Colors.greyText}>Matières</ThemedText>
+            </View>
 
+            {subjectToAdd && (
+              <Pressable onPress={onSubjectAdd}>
+                <ThemedText variant="caption" color={Colors.secondary} bold>+ Ajouter</ThemedText>
+              </Pressable>
             )}
           </View>
 
           {/* Dropdown to add subjects */}
           <Dropdown
-            options={[...unselectedSubjectsDropdown, { id: 'add', label: 'Nouvelle matière' }]}
-            onChange={(optionId) => setSelectedSubjectId(optionId)}
-            value={selectedSubjectId}
+            options={[...unselectedSubjectsDropdown, { id: 'new', label: 'Nouvelle matière' }]}
+            onChange={(optionId) => setSubjectToAdd(optionId)}
+            value={subjectToAdd}
             placeholder="Ajouter une matière..."
           />
 
           {/* Selected subjects list */}
           <View style={styles.subjectsList}>
-            {selectedSubjects.map((subject) => (
-              <View key={subject.id} style={styles.subjectItem}>
-                {/* Subject header */}
-                <View style={styles.subjectHeader}>
-                  <Pressable
-                    style={styles.subjectInfo}
-                    onPress={() => toggleSubjectExpanded(subject.id)}
-                  >
-                    <View style={[styles.colorDot, { backgroundColor: subject.color }]} />
-                    <ThemedText variant="body" bold>
-                      {subject.name}
-                    </ThemedText>
-                    <Ionicons
-                      name={subject.expanded ? 'chevron-up' : 'chevron-down'}
-                      size={18}
-                      color={Colors.greyText}
-                    />
-                  </Pressable>
-                  <View style={styles.subjectRight}>
-                    <ThemedText variant="caption" color={Colors.greyText}>
-                      Coef.
-                    </ThemedText>
-                    <TextInput
-                      style={styles.coefficientInput}
-                      value={subject.coefficient.toString()}
-                      onChangeText={(value) => updateCoefficient(subject.id, value)}
-                      keyboardType="numeric"
-                      maxLength={2}
-                    />
-                    <Pressable onPress={() => handleRemoveSubject(subject.id)}>
-                      <Ionicons name="close-circle" size={20} color={Colors.greyText} />
+            {subjectFields.map((field, subjectIndex) => {
+              const subjectData = AVAILABLE_SUBJECTS.find((s) => s.id === field.id);
+              return (
+                <View key={field._id} style={styles.subjectItem}>
+                  {/* Subject header */}
+                  <View style={styles.subjectHeader}>
+                    <Pressable style={styles.subjectInfo} onPress={() => toggleSubjectExpanded(field.id)}>
+                      <View style={[styles.colorDot, { backgroundColor: subjectData?.color }]} />
+                      <ThemedText variant="body" bold>
+                        {subjectData?.name}
+                      </ThemedText>
+                      <Ionicons name={isExpanded(field.id) ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.greyText} />
                     </Pressable>
-                  </View>
-                </View>
 
-                {/* Chapters (expanded) */}
-                {subject.expanded && (
-                  <View style={styles.chaptersContainer}>
-                    {subject.chapters.map((chapter) => (
-                      <Pressable
-                        key={chapter.id}
-                        style={styles.chapterItem}
-                        onPress={() => toggleChapterSelected(subject.id, chapter.id)}
-                      >
-                        <Ionicons
-                          name={chapter.selected ? 'checkbox' : 'square-outline'}
-                          size={22}
-                          color={chapter.selected ? Colors.secondary : Colors.greyText}
-                        />
-                        <ThemedText
-                          variant="caption"
-                          color={chapter.selected ? Colors.black : Colors.greyText}
+                    <View style={styles.subjectRight}>
+                      <ThemedText variant="caption" color={Colors.greyText}>
+                        Coef.
+                      </ThemedText>
+                      <Controller
+                        control={control}
+                        name={`subjects.${subjectIndex}.coefficient`}
+                        render={({ field: { onChange, onBlur, value } }) => (
+                          <TextInput
+                            style={styles.coefficientInput}
+                            value={String(value ?? '')}
+                            onChangeText={(text) => {
+                              const num = parseInt(text, 10);
+                              onChange(isNaN(num) ? '' : num);
+                            }}
+                            onBlur={() => {
+                              if (!value || value === 0)
+                                onChange(1);
+                              onBlur();
+                            }}
+                            keyboardType="numeric"
+                            maxLength={2}
+                          />
+                        )}
+                      />
+                      <Pressable onPress={() => handleRemoveSubject(subjectIndex)}>
+                        <Ionicons name="close-circle" size={20} color={Colors.greyText} />
+                      </Pressable>
+                    </View>
+                  </View>
+
+                  {/* Chapters (expanded) */}
+                  {isExpanded(field.id) && (
+                    <View style={styles.chaptersContainer}>
+                      {field.chapters.map((chapter, chapterIndex) => (
+                        <Pressable key={chapter.id} style={styles.chapterItem}
+                          onPress={() => toggleChapterSelected(subjectIndex, chapterIndex)}
                         >
-                          {chapter.name}
+                          <Ionicons name={chapter.selected ? 'checkbox' : 'square-outline'} size={22}
+                            color={chapter.selected ? Colors.secondary : Colors.greyText}
+                          />
+                          <ThemedText variant="caption" color={chapter.selected ? Colors.black : Colors.greyText}>
+                            {chapter.name}
+                          </ThemedText>
+                        </Pressable>
+                      ))}
+                      <Pressable style={styles.addChapterButton}>
+                        <ThemedText variant="caption" color={Colors.secondary}>
+                          + Nouveau chapitre
                         </ThemedText>
                       </Pressable>
-                    ))}
-                    <Pressable style={styles.addChapterButton}>
-                      <ThemedText variant="caption" color={Colors.secondary}>
-                        + Nouveau chapitre
-                      </ThemedText>
-                    </Pressable>
-                  </View>
-                )}
-              </View>
-            ))}
+                    </View>
+                  )}
+                </View>
+              )
+            }
+            )}
           </View>
         </View>
 
@@ -290,7 +328,7 @@ export default function ExamForm({ isVisible, onClose }: Props) {
             iconLeft='add'
             backgroundColor={Colors.secondary}
             color={Colors.white}
-            onPress={handleSubmit}
+            onPress={handleSubmit(onSubmit)}
             style={styles.submitButton}
           />
         </View>
@@ -304,6 +342,19 @@ export default function ExamForm({ isVisible, onClose }: Props) {
           onSubjectCreated={handleSubjectCreated}
         />
       )}
+
+      {/* Date Picker Modal */}
+      <DatePickerModal
+        locale="fr"
+        mode="single"
+        visible={datePickerVisible}
+        onDismiss={() => setDatePickerVisible(false)}
+        date={selectedDate}
+        onConfirm={(params) => {
+          setValue('date', params.date as Date);
+          setDatePickerVisible(false);
+        }}
+      />
     </BottomModal>
   );
 }
@@ -320,6 +371,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  fieldSection: {
+    gap: Spacing.sm,
+  },
+  fieldHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: Spacing.sm,
+  },
+  pickerInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.black + '20',
+    backgroundColor: Colors.white,
+  },
+  pickerInputError: {
+    borderColor: Colors.error,
   },
   subjectsList: {
     gap: Spacing.sm,
