@@ -13,6 +13,7 @@ import { drizzle } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from '@/drizzle/migrations';
 import { ActivityIndicator } from "react-native";
+import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
 
 export const DATABASE_NAME = "dachDB";
 
@@ -22,6 +23,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const expoDb = openDatabaseSync(DATABASE_NAME);
   const db = drizzle(expoDb);
+  useDrizzleStudio(expoDb);
   const { success, error } = useMigrations(db, migrations);
 
   const [loadedFont, errorFont] = useFonts({

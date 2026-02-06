@@ -1,12 +1,13 @@
 import { z } from "zod";
+import type { Subject as DbSubject } from "@/db/schema";
 
-export type Subject = {
-  id: string;
-  name: string;
-  color: string;
-  icon: string;
-  chapters?: number;
-  completedChapters?: number;
+// Re-export DB type as base Subject
+export type Subject = DbSubject;
+
+// For UI display with computed chapter counts
+export type SubjectWithChapters = Subject & {
+  chapters: number;
+  completedChapters: number;
 };
 
 // Subject form types
@@ -20,14 +21,3 @@ export const subjectSchema = z.object({
 });
 
 export type SubjectFormData = z.infer<typeof subjectSchema>;
-
-export type SubjectEntity = {
-  id: string;
-  name: string;
-  color: string;
-  icon: string;
-  chapters?: number;
-  completedChapters?: number;
-  createdAt?: Date;
-  updatedAt?: Date;
-};

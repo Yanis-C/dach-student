@@ -1,7 +1,9 @@
-import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect } from 'react';
+import { Alert, FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { eq } from 'drizzle-orm';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 
 import { BottomModal } from '@/components/base/BottomModal';
@@ -11,16 +13,14 @@ import { ThemedText } from '@/components/base/ThemedText';
 import { Colors } from '@/constants/Colors';
 import { CommonStyles } from '@/constants/CommonStyles';
 import { Radius, Spacing } from '@/constants/Spacing';
-import { SubjectFormData, subjectSchema } from '@/types/Subject';
-import { useSQLiteContext } from 'expo-sqlite';
-import { drizzle } from 'drizzle-orm/expo-sqlite';
+import { Subject, SubjectFormData, subjectSchema } from '@/types/Subject';
+import { useDrizzle } from '@/hooks/useDrizzle';
 import * as schema from '@/db/schema';
-import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
 
 type Props = {
   isVisible: boolean;
   onClose: () => void;
-  onSubjectCreated?: (subject: SubjectFormData) => void;
+  subject?: Subject; // If provided, form is in edit mode
 };
 
 const THEME_COLORS = [
@@ -53,10 +53,9 @@ const THEME_ICONS = [
   'people',
 ] as const;
 
-export default function SubjectForm({ isVisible, onClose, onSubjectCreated }: Props) {
-  const db = useSQLiteContext();
-  const drizzleDb = drizzle(db, { schema });
-  useDrizzleStudio(db);
+export default function SubjectForm({ isVisible, onClose, subject }: Props) {
+  const db = useDrizzle();
+  const isEditMode = !!subject;
 
   const {
     control,
@@ -74,16 +73,39 @@ export default function SubjectForm({ isVisible, onClose, onSubjectCreated }: Pr
     },
   });
 
+  // Populate form when editing
+  useEffect(() => {
+    if (subject) {
+      reset({
+        name: subject.name,
+        color: subject.color,
+        icon: subject.icon,
+      });
+    } else {
+      reset({
+        name: '',
+        color: THEME_COLORS[0],
+        icon: THEME_ICONS[0],
+      });
+    }
+  }, [subject, reset]);
+
   const selectedColor = watch('color');
   const selectedIcon = watch('icon');
 
   const onSubmit: SubmitHandler<SubjectFormData> = (data) => {
-    drizzleDb.insert(schema.subjects).values({
-      name: data.name,
-      color: data.color,
-      icon: data.icon,
-    }).run();
-    onSubjectCreated?.(data);
+    if (isEditMode) {
+      db.update(schema.subjects)
+        .set({ name: data.name, color: data.color, icon: data.icon })
+        .where(eq(schema.subjects.id, subject.id))
+        .run();
+    } else {
+      db.insert(schema.subjects).values({
+        name: data.name,
+        color: data.color,
+        icon: data.icon,
+      }).run();
+    }
     reset();
     onClose();
   };
@@ -93,8 +115,30 @@ export default function SubjectForm({ isVisible, onClose, onSubjectCreated }: Pr
     onClose();
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      "Supprimer la matière",
+      "Êtes-vous sûr de vouloir supprimer cette matière ?",
+      [
+        { text: " Annuler ", style: "cancel" },
+        {
+          text: " Supprimer ",
+          style: "destructive",
+          onPress: () => {
+            if (subject) {
+              db.delete(schema.subjects)
+                .where(eq(schema.subjects.id, subject.id))
+                .run();
+              onClose();
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
-    <BottomModal isVisible={isVisible} onClose={handleClose} title="Nouvelle matière" height="60%">
+    <BottomModal isVisible={isVisible} onClose={handleClose} title={isEditMode ? "Modifier la matière" : "Nouvelle matière"} height="60%">
       <ScrollView contentContainerStyle={styles.form} showsVerticalScrollIndicator={false}>
         {/* Name Field */}
         <Controller
@@ -172,14 +216,36 @@ export default function SubjectForm({ isVisible, onClose, onSubjectCreated }: Pr
           />
         </View>
 
-        <Button
-          title="Créer la matière"
-          style={styles.submitButton}
-          onPress={() => handleSubmit(onSubmit)()}
-          variant="filled"
-          color={Colors.white}
-          backgroundColor={Colors.secondary}
-        />
+        {isEditMode ? (
+          <View style={styles.buttonRow}>
+            <Button
+              title="Supprimer"
+              iconLeft="trash-outline"
+              onPress={handleDelete}
+              variant="outline"
+              color={Colors.error}
+              backgroundColor={Colors.error}
+              style={styles.editButton}
+            />
+            <Button
+              title="Enregistrer"
+              onPress={() => handleSubmit(onSubmit)()}
+              variant="filled"
+              color={Colors.white}
+              backgroundColor={Colors.secondary}
+              style={styles.editButton}
+            />
+          </View>
+        ) : (
+          <Button
+            title="Créer la matière"
+            style={styles.submitButton}
+            onPress={() => handleSubmit(onSubmit)()}
+            variant="filled"
+            color={Colors.white}
+            backgroundColor={Colors.secondary}
+          />
+        )}
       </ScrollView>
     </BottomModal>
   );
@@ -219,6 +285,15 @@ const styles = StyleSheet.create({
     width: '70%',
     alignSelf: 'center',
     marginTop: 'auto',
+    borderRadius: Radius.lg,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: Spacing.lg,
+    marginTop: 'auto',
+  },
+  editButton: {
+    flex: 1,
     borderRadius: Radius.lg,
   },
 });

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import Head from 'expo-router/head';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 import { SwitchButton } from '@/components/base/SwitchButton';
@@ -13,11 +13,10 @@ import SubjectForm from '@/components/modals/SubjectForm';
 import { Colors } from '@/constants/Colors';
 import { CommonStyles } from '@/constants/CommonStyles';
 import { Radius, Spacing } from '@/constants/Spacing';
-import { Subject } from '@/types/Subject';
-import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
-import { useSQLiteContext } from 'expo-sqlite';
-import { drizzle } from 'drizzle-orm/expo-sqlite';
+import { useDrizzle } from '@/hooks/useDrizzle';
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import * as schema from '@/db/schema';
+import { Subject } from '@/types/Subject';
 
 type ViewType = 'exams' | 'subjects';
 
@@ -31,25 +30,6 @@ type MockExam = {
   preparation: number;
   color: string;
 };
-
-const MOCK_SUBJECTS: Subject[] = [
-  {
-    id: '1',
-    name: 'Mathématiques',
-    color: '#5856D6',
-    icon: 'calculator',
-    chapters: 6,
-    completedChapters: 4,
-  },
-  {
-    id: '2',
-    name: 'Physique-Chimie',
-    color: '#E67E22',
-    icon: 'flask',
-    chapters: 8,
-    completedChapters: 3,
-  },
-];
 
 const MOCK_EXAMS: MockExam[] = [
   {
@@ -88,28 +68,27 @@ const MOCK_EXAMS: MockExam[] = [
 ];
 
 export default function ExamsScreen() {
-  const db = useSQLiteContext();
-  const drizzleDb = drizzle(db, { schema });
-  useDrizzleStudio(db);
-
-  useEffect(() => {
-
-    (async () => {
-      const dbSubjects2 = await drizzleDb.query.subjects.findMany();
-      console.log('Subjects from DB 2 (query builder):', dbSubjects2);
-    })();
-  }, [])
+  const db = useDrizzle();
+  const { data: subjects } = useLiveQuery(db.select().from(schema.subjects));
 
   const [activeView, setActiveView] = useState<ViewType>('exams');
-  const [isSubjectFormVisible, setIsSubjectFormVisible] = useState(false);
+  const [editingSubject, setEditingSubject] = useState<Subject | undefined>(undefined);
+  const [isCreatingSubject, setIsCreatingSubject] = useState(false);
   const [isExamFormVisible, setIsExamFormVisible] = useState(false);
+
+  const isSubjectFormVisible = isCreatingSubject || editingSubject !== undefined;
 
   const handleAddPress = () => {
     if (activeView === 'subjects') {
-      setIsSubjectFormVisible(true);
+      setIsCreatingSubject(true);
     } else {
       setIsExamFormVisible(true);
     }
+  };
+
+  const handleCloseSubjectForm = () => {
+    setIsCreatingSubject(false);
+    setEditingSubject(undefined);
   };
 
   return (
@@ -121,11 +100,11 @@ export default function ExamsScreen() {
       <View style={styles.switchContainer}>
         <SwitchButton
           options={['exams', 'subjects'] as [ViewType, ViewType]}
-          labels={['Examens', 'Matières']}
+          labels={['Mes Examens', 'Mes Matières']}
           value={activeView}
           onChange={setActiveView}
           radius={Radius.md}
-          activeStyle={{ backgroundColor: Colors.secondary }}
+          activeStyle={{ backgroundColor: Colors.primary }}
           activeTextColor={Colors.white}
         />
       </View>
@@ -160,11 +139,11 @@ export default function ExamsScreen() {
         />
       ) : (
         <FlatList
-          data={MOCK_SUBJECTS}
-          keyExtractor={(item) => item.id}
+          data={subjects ?? []}
+          keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <MainSubject subject={item} onPress={() => console.log('pressed', item.name)} />
+            <MainSubject subject={item} onPress={() => setEditingSubject(item)} />
           )}
         />
       )}
@@ -181,7 +160,8 @@ export default function ExamsScreen() {
       {isSubjectFormVisible && (
         <SubjectForm
           isVisible={isSubjectFormVisible}
-          onClose={() => setIsSubjectFormVisible(false)}
+          onClose={handleCloseSubjectForm}
+          subject={editingSubject}
         />
       )}
 

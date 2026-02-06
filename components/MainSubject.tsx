@@ -4,16 +4,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { Spacing, Radius } from '@/constants/Spacing';
 import { ThemedText } from '@/components/base/ThemedText';
-import { Subject } from '@/types/Subject';
+import { Subject, SubjectWithChapters } from '@/types/Subject';
 
 interface MainSubjectProps {
-  subject: Subject;
+  subject: Subject | SubjectWithChapters;
   onPress?: () => void;
 }
 
 export function MainSubject({ subject, onPress }: MainSubjectProps) {
-  const progress = subject.chapters > 0
-    ? Math.round((subject.completedChapters / subject.chapters) * 100)
+  // Handle subjects with or without chapter counts
+  const chapters = 'chapters' in subject ? subject.chapters : 0;
+  const completedChapters = 'completedChapters' in subject ? subject.completedChapters : 0;
+  const progress = chapters > 0
+    ? Math.round((completedChapters / chapters) * 100)
     : 0;
 
   return (
@@ -38,7 +41,7 @@ export function MainSubject({ subject, onPress }: MainSubjectProps) {
       {/* Stats Row */}
       <View style={styles.statsRow}>
         <ThemedText variant="caption" style={styles.statsText}>
-          {subject.chapters} chapitres • {subject.completedChapters} terminés
+          {chapters} chapitres • {completedChapters} terminés
         </ThemedText>
         <ThemedText variant="caption" style={styles.percentText}>
           {progress}%
