@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
+import { eq } from 'drizzle-orm';
+import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { Controller, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { DatePickerModal } from 'react-native-paper-dates';
 
@@ -17,52 +19,52 @@ import { Colors } from '@/constants/Colors';
 import { CommonStyles } from '@/constants/CommonStyles';
 import { Radius, Spacing } from '@/constants/Spacing';
 import { FontFamily, FontSize } from '@/constants/Typography';
+import * as schema from '@/db/schema';
+import { useDrizzle } from '@/hooks/useDrizzle';
 import { ExamFormData, examSchema } from '@/types/Exam';
 import SubjectForm from './SubjectForm';
 
 dayjs.locale('fr');
 
+type ExamWithSubjects = {
+  id: number;
+  name: string;
+  date: Date;
+  subjects: {
+    subjectId: number;
+    coefficient: number;
+  }[];
+};
+
 type Props = {
   isVisible: boolean;
   onClose: () => void;
+  exam?: ExamWithSubjects;
 };
 
-// Available subjects that can be added to an exam
-const AVAILABLE_SUBJECTS = [
-  {
-    id: '1',
-    name: 'Mathématiques',
-    color: Colors.secondary,
-    chapters: [
-      { id: '1', name: 'Chapitre 1 - Suites numériques' },
-      { id: '2', name: 'Chapitre 2 - Limites et continuité' },
-      { id: '3', name: 'Chapitre 5 - Intégrales' },
-    ],
-  },
-  {
-    id: '2',
-    name: 'Physique-Chimie',
-    color: Colors.primary,
-    chapters: [
-      { id: '1', name: 'Chapitre 1 - Mécanique' },
-      { id: '2', name: 'Chapitre 2 - Thermodynamique' },
-    ],
-  },
-  {
-    id: '3',
-    name: 'Français',
-    color: Colors.success,
-    chapters: [],
-  },
-  {
-    id: '4',
-    name: 'Philosophie',
-    color: Colors.warning,
-    chapters: [],
-  },
-];
+export default function ExamForm({ isVisible, onClose, exam }: Props) {
+  const db = useDrizzle();
+  const isEditMode = !!exam;
 
-export default function ExamForm({ isVisible, onClose }: Props) {
+  // Load subjects and chapters from database
+  const { data: dbSubjects } = useLiveQuery(db.select().from(schema.subjects));
+  const { data: dbChapters } = useLiveQuery(db.select().from(schema.chapters));
+
+  // Build subjects with their chapters (memoized to prevent infinite loops)
+  const availableSubjects = useMemo(() => {
+    return (dbSubjects ?? []).map((subject) => ({
+      id: String(subject.id),
+      name: subject.name,
+      color: subject.color,
+      chapters: (dbChapters ?? [])
+        .filter((chapter) => chapter.subjectId === subject.id)
+        .map((chapter) => ({
+          id: String(chapter.id),
+          name: chapter.name,
+        })),
+    }));
+  }, [dbSubjects, dbChapters]);
+
   const { control, handleSubmit, formState: { errors }, watch, setValue, reset } = useForm<ExamFormData>({
     resolver: zodResolver(examSchema),
     defaultValues: {
@@ -72,6 +74,35 @@ export default function ExamForm({ isVisible, onClose }: Props) {
     }
   });
 
+  // Populate form when editing
+  useEffect(() => {
+    if (exam && availableSubjects.length > 0) {
+      reset({
+        name: exam.name,
+        date: exam.date,
+        subjects: exam.subjects.map((examSubject) => {
+          const subject = availableSubjects.find((s) => s.id === String(examSubject.subjectId));
+          return {
+            id: String(examSubject.subjectId),
+            coefficient: examSubject.coefficient,
+            chapters: subject?.chapters.map((c) => ({
+              id: c.id,
+              name: c.name,
+              selected: false
+            })) ?? [],
+          };
+        }),
+      });
+    } else if (!exam) {
+      reset({
+        name: '',
+        date: undefined,
+        subjects: [],
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exam, availableSubjects]);
+
   //UI state
   const [expandedSubjects, setExpandedSubjects] = useState<string[]>([]);
 
@@ -79,19 +110,56 @@ export default function ExamForm({ isVisible, onClose }: Props) {
   const selectedDate = watch('date');
 
   const {
-    fields: subjectFields, append: appendSubject, remove: removeSubject, update: updateSubject
+    fields: subjectFields, append: appendSubject, remove: removeSubject
   } = useFieldArray({ control, name: 'subjects', keyName: '_id' });
 
 
   const onSubmit: SubmitHandler<ExamFormData> = (data: ExamFormData) => {
-    console.log('Create exam with form data:', data);
+    if (isEditMode) {
+      // Update existing exam
+      db.update(schema.exams)
+        .set({ name: data.name, date: data.date })
+        .where(eq(schema.exams.id, exam.id))
+        .run();
+
+      // Delete old subject associations
+      db.delete(schema.examsToSubjects)
+        .where(eq(schema.examsToSubjects.examId, exam.id))
+        .run();
+
+      // Insert new subject associations
+      data.subjects.forEach((subject) => {
+        db.insert(schema.examsToSubjects).values({
+          examId: exam.id,
+          subjectId: Number(subject.id),
+          coefficient: subject.coefficient,
+        }).run();
+      });
+    } else {
+      // Create new exam
+      const result = db.insert(schema.exams).values({
+        name: data.name,
+        date: data.date,
+      }).returning({ id: schema.exams.id }).get();
+
+      // Insert subject associations
+      if (result) {
+        data.subjects.forEach((subject) => {
+          db.insert(schema.examsToSubjects).values({
+            examId: result.id,
+            subjectId: Number(subject.id),
+            coefficient: subject.coefficient,
+          }).run();
+        });
+      }
+    }
     handleClose();
   }
 
   const [isSubjectFormVisible, setIsSubjectFormVisible] = useState(false);
 
   // Subjects not yet added to the exam
-  const unselectedSubjectsDropdown = AVAILABLE_SUBJECTS
+  const unselectedSubjectsDropdown = availableSubjects
     .filter((s) => !subjectFields.find((sel) => sel.id === s.id))
     .map((s) => ({ id: s.id, label: s.name, color: s.color }));
 
@@ -111,8 +179,31 @@ export default function ExamForm({ isVisible, onClose }: Props) {
 
   // ===== Methods =====
 
+  const handleDelete = () => {
+    Alert.alert(
+      "Supprimer l'examen",
+      "Êtes-vous sûr de vouloir supprimer cet examen ?",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: () => {
+            if (exam) {
+              // Delete exam (cascade will delete examsToSubjects entries)
+              db.delete(schema.exams)
+                .where(eq(schema.exams.id, exam.id))
+                .run();
+              onClose();
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleAddSubject = (subjectId: string) => {
-    const subject = AVAILABLE_SUBJECTS.find((s) => s.id === subjectId);
+    const subject = availableSubjects.find((s) => s.id === subjectId);
     if (subject) {
       const newSubject = {
         id: subject.id,
@@ -142,11 +233,9 @@ export default function ExamForm({ isVisible, onClose }: Props) {
     setValue(`subjects.${subjectIndex}.chapters.${chapterIndex}.selected`, !currentValue);
   };
 
-  //TODO: types
-  const handleSubjectCreated = (subject: { name: string; color: string; icon: string }) => {
-    console.log('New subject created in ExamForm:', subject);
+  const handleSubjectCreated = () => {
     setIsSubjectFormVisible(false);
-    //TODO: refresh AVAILABLE_SUBJECTS list with new subject from DB
+    // availableSubjects will auto-refresh via useLiveQuery
   };
 
   const handleClose = () => {
@@ -157,7 +246,7 @@ export default function ExamForm({ isVisible, onClose }: Props) {
 
 
   return (
-    <BottomModal isVisible={isVisible} onClose={handleClose} title="Nouvel examen" height="65%">
+    <BottomModal isVisible={isVisible} onClose={handleClose} title={isEditMode ? "Modifier l'examen" : "Nouvel examen"} height="65%">
       <ScrollView contentContainerStyle={styles.form} showsVerticalScrollIndicator={false}>
         <Controller
           control={control}
@@ -223,7 +312,7 @@ export default function ExamForm({ isVisible, onClose }: Props) {
           {/* Selected subjects list */}
           <View style={styles.subjectsList}>
             {subjectFields.map((field, subjectIndex) => {
-              const subjectData = AVAILABLE_SUBJECTS.find((s) => s.id === field.id);
+              const subjectData = availableSubjects.find((s) => s.id === field.id);
               return (
                 <View key={field._id} style={styles.subjectItem}>
                   {/* Subject header */}
@@ -297,33 +386,54 @@ export default function ExamForm({ isVisible, onClose }: Props) {
         </View>
 
         {/* Action buttons */}
-        <View style={styles.buttonRow}>
-          <Button
-            title="Annuler"
-            onPress={handleClose}
-            variant="filled"
-            color={Colors.greyText}
-            backgroundColor={Colors.greyLight}
-            style={CommonStyles.buttonFlex}
-          />
-          <Button
-            title="Créer"
-            variant="filled"
-            iconLeft='add'
-            backgroundColor={Colors.secondary}
-            color={Colors.white}
-            onPress={handleSubmit(onSubmit)}
-            style={CommonStyles.buttonFlex}
-          />
-        </View>
+        {isEditMode ? (
+          <View style={styles.buttonRow}>
+            <Button
+              title="Supprimer"
+              iconLeft="trash-outline"
+              onPress={handleDelete}
+              variant="outline"
+              color={Colors.error}
+              backgroundColor={Colors.error}
+              style={CommonStyles.buttonFlex}
+            />
+            <Button
+              title="Enregistrer"
+              onPress={handleSubmit(onSubmit)}
+              variant="filled"
+              color={Colors.white}
+              backgroundColor={Colors.secondary}
+              style={CommonStyles.buttonFlex}
+            />
+          </View>
+        ) : (
+          <View style={styles.buttonRow}>
+            <Button
+              title="Annuler"
+              onPress={handleClose}
+              variant="filled"
+              color={Colors.greyText}
+              backgroundColor={Colors.greyLight}
+              style={CommonStyles.buttonFlex}
+            />
+            <Button
+              title="Créer"
+              variant="filled"
+              iconLeft='add'
+              backgroundColor={Colors.secondary}
+              color={Colors.white}
+              onPress={handleSubmit(onSubmit)}
+              style={CommonStyles.buttonFlex}
+            />
+          </View>
+        )}
       </ScrollView>
 
       {/* Subject Form Modal */}
       {isSubjectFormVisible && (
         <SubjectForm
           isVisible={isSubjectFormVisible}
-          onClose={() => setIsSubjectFormVisible(false)}
-          onSubjectCreated={handleSubjectCreated}
+          onClose={handleSubjectCreated}
         />
       )}
 
